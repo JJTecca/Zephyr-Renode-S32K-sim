@@ -1,0 +1,8 @@
+# ci.yml — two jobs, will do:
+# build: zephyrprojectrtos/ci container — west init/update (allowlisted
+#   modules only), build k3_hub + both k1_edge instances for
+#   mr_canhubk3/s32k344, upload zephyr.elf artifacts.
+# simulate: fetch Renode portable (pinned release), run
+#   renode-test tests/renode/topology_boot.robot against the built ELFs;
+#   nightly: seeded campaign (run_campaign.py) and assert byte-identical CSV
+#   for the fixed seed — the reproducibility gate.

@@ -1,0 +1,10 @@
+# boot_topology.resc — boots the whole in-vehicle network in one command:
+# `renode sim/renode/boot_topology.resc` from the repo root.
+# Will do: emulation CreateCANHub "canbus0"; then for k3_hub, k1_powertrain,
+# k1_chassis: mach create, LoadPlatformDescription (repls above), LoadELF from
+# build/<node>/zephyr/zephyr.elf, set cpu0 VectorTableOffset from
+# `_vector_table`, connector Connect sysbus.can0 canbus0. showAnalyzer lpuart2
+# on the hub. Includes fault_hooks.py for injection commands. Optional host
+# bridge (Renode >= 1.15.1): machine CreateSocketCANBridge "socketcan" "vcan0"
+# + connector Connect socketcan canbus0 → frames visible to candump/Wireshark.
+# Virtual time = determinism: same seed + schedule → byte-identical logs.
