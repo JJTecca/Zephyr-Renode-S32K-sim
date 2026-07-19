@@ -1,0 +1,8 @@
+// k3_hub_s32k388.repl — Renode platform for the K3 zonal hub. One line of
+// substance: `using "platforms/cpus/nxp-s32k388.repl"` — the upstream
+// Antmicro platform (verified in Renode master, July 2026): quad Cortex-M7
+// (Zephyr runs on cpu0, cpu1-3 held in reset), 8 MB flash @ 0x00400000,
+// SRAM @ 0x20400000, 16x LPUART (console lpuart2), 8x NXP_FlexCAN (can0-7).
+// S32K344 is not modeled upstream, so ELFs built for mr_canhubk3/s32k344 run
+// here — same family memory map. Write-up name: "S32K3-class (S32K388)";
+// no NPU on S32K3 (hard rule).

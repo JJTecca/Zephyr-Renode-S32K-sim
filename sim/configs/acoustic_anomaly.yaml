@@ -1,0 +1,4 @@
+# acoustic_anomaly.yaml — DETECT ONLY (no lead-time claim). Will define:
+# MIMII-dataset FFT-band features replayed through the k1_acoustic node
+# (no analytical ttf exists → detection labels only, never a countdown);
+# recovery = flag to HITL. Lowest priority of the four classes.

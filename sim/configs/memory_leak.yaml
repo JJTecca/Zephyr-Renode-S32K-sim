@@ -1,0 +1,5 @@
+# memory_leak.yaml — FLAGSHIP (the healed class), claim: PREDICT ⏱.
+# Will define: signal heap_free_bytes on k1_powertrain; injection = monitor
+# command inject_memory_leak with leak_bytes_per_tick after a clean baseline
+# window; analytical ground truth true_ttf = heap_free_at_injection /
+# (leak_bytes_per_tick × 10/s); recovery = restart (whitelist); label windows.

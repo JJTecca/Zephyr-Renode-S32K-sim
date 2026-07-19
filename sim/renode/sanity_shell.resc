@@ -1,0 +1,6 @@
+# sanity_shell.resc — zero-build smoke test of the toolchain. Mirrors
+# upstream renode/scripts/single-node/nxp-s32k388_zephyr.resc: boot Antmicro's
+# prebuilt Zephyr shell ELF (dl.antmicro.com s32k388--zephyr-shell_module.elf)
+# on the S32K388 platform, shell prompt appears on lpuart2. If this works,
+# the Renode install and platform model are good before any local firmware
+# build exists.

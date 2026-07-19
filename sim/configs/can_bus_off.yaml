@@ -1,0 +1,7 @@
+# can_bus_off.yaml — FLAGSHIP, GATED on the August check: does Renode's
+# NXP_FlexCAN expose TEC/REC counters climbing to bus-off (127 → 256)?
+# Upstream model status unverified for error counters. Will define: signal
+# can_tx_err on k1_chassis; injection = scheduled frame corruption on canbus0;
+# ground truth = extrapolated TEC crossing of 256; recovery = load-shed.
+# If the gate fails: swap flagship to timing_deadline_miss; a FlexCAN model
+# extension becomes a side contribution. status: gated — keep out of campaigns.

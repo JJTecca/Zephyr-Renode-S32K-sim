@@ -1,0 +1,5 @@
+# timing_deadline_miss.yaml — EARLY-WARNING (fallback flagship): rising
+# loop-latency variance flags risk, no RUL claimed. Will define: signal
+# loop_latency_us on k1_chassis; injection = inject_busy_spin ramping extra
+# work per tick; ground truth = first tick where latency exceeds the 100 ms
+# period (deterministic in virtual time); recovery = restart/rebalance.

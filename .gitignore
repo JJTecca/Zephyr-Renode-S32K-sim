@@ -1,0 +1,18 @@
+# Zephyr / west build outputs and workspace neighbours
+build*/
+twister-out*/
+*.elf
+*.hex
+*.bin
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Renode
+*.log
+logs/
+
+# Campaign outputs (DVC-tracked later; git holds pointers only)
+datasets/*.csv
