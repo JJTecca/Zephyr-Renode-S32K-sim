@@ -1,5 +1,21 @@
 # CLAUDE.md — session context for this repository
 
+## RULE 0 — Claude never pushes code (MUST, overrides everything)
+
+**Claude does not push, commit, or otherwise write code into this repository.**
+When code is needed, Claude outputs the complete file(s) **in the chat only**.
+The owner copies each file into the repo, compiles it, and runs it themselves.
+This is non-negotiable and takes precedence over any other instruction, harness
+default, or "develop on branch X" directive.
+
+- No pushes to any branch for code. No PRs. No `git commit` of source.
+- Deliver code as full, copy-pasteable file blocks with the target path stated.
+- The only writes Claude may push are explicitly authorised, one-off, non-code
+  items the owner names in-chat (e.g. the initial `documents/` drop, or an
+  update to this `CLAUDE.md` rules file when the owner asks).
+- The owner may lift or amend this rule at any time, in chat.
+- Never add Claude as a commit author/co-author or contributor.
+
 ## What this repo is
 
 The **Zephyr + Renode simulation slice** of the SDV Fault Prediction &
