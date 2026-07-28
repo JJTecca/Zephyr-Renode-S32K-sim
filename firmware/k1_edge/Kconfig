@@ -1,4 +1,8 @@
-# Kconfig — app option SDV_NODE_ID (1=powertrain, 2=chassis, 3=body,
-# 4=acoustic) so one source tree builds every K1 instance:
-#   west build ... -d build/k1_chassis -- -DCONFIG_SDV_NODE_ID=2
-# Then sources Kconfig.zephyr.
+# Kconfig — app-level options for the K1 edge node
+
+config SDV_NODE_ID
+    int "SDV node ID (1=powertrain, 2=chassis, 3=body, 4=acoustic)"
+    default 1
+    range 1 4
+
+source "Kconfig.zephyr"
