@@ -1,8 +1,1 @@
-// k1_edge.repl — Renode platform for a K1 sense-only edge node, instantiated
-// 2×+ by boot_topology.resc. Day-one: same upstream S32K388 platform as the
-// hub, because Renode master ships NO S32K1 platform (nxp-s32k118.repl does
-// not exist upstream — verified July 2026, correcting earlier scope notes).
-// End-state path: Zephyr upstream has the S32K118/S32K146 SoCs (boards
-// ucans32k1sic, s32k148_evb) — generate a true S32K1 repl from that build's
-// devicetree with Antmicro's dts2repl and swap it in. Until then, the
-// firmware (sense-only, never actuates) is what makes the node K1-class.
+using "platforms/cpus/nxp-s32k388.repl"

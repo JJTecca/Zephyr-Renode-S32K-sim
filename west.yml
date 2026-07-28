@@ -1,5 +1,20 @@
-# west.yml — manifest of the Zephyr T2 workspace (this repo = manifest repo).
-# Will pin: zephyr v4.2.0 + name-allowlist (cmsis, cmsis_6, hal_nxp) so
-# `west init -l . && west update` fetches only what the S32K builds need.
-# Board target for both apps: mr_canhubk3/s32k344 — the only upstream Zephyr
-# S32K3 board (and the same MR-CANHUBK344 ordered as backup hardware).
+# west.yml — T2 workspace manifest (this repo = manifest repo).
+# Usage: west init -l . && west update
+
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: v4.2.0
+      import:
+        name-allowlist:
+          - cmsis
+          - cmsis_6
+          - hal_nxp
+
+  self:
+    path: Zephyr-Renode-S32K-sim
