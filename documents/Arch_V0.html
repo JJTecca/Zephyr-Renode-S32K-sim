@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<meta name="design_doc_mode" content="canvas">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #ffffff;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: #131b26;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: #1a6fd4; text-decoration: none; }
+  a:hover { color: #1257ac; }
+  ::selection { background: rgba(26,111,212,0.18); }
+</style>
+</helmet>
+<div style="display:flex; flex-direction:column; align-items:center; gap:52px; padding:64px 48px 110px;">
+
+  <!-- ============ TITLE + LEGEND ============ -->
+  <section data-screen-label="Title & Legend" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:44px 46px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:22px;">
+        <span style="font-size:11.5px; font-weight:700; letter-spacing:0.2em; color:#ffffff; background:#0b8a5c; padding:5px 11px; border-radius:5px;">THESIS SYSTEM MAP</span>
+        <span style="font-size:11.5px; letter-spacing:0.14em; color:#8b94a1;">v · JULY 2026 · K1 → K3 → CLOUD</span>
+      </div>
+      <h1 style="margin:0 0 12px; font-size:34px; line-height:1.15; font-weight:800; letter-spacing:-0.01em;">Fault Prediction &amp; Self-Healing<br>for a Software-Defined Vehicle</h1>
+      <p style="margin:0 0 6px; font-size:15px; line-height:1.6; color:#3a4453;">K1 edge → K3 zonal → cloud AI. A deterministic safety supervisor holds the veto.<br><span style="color:#0b8a5c; font-weight:600;">On-vehicle AI may act</span> · <span style="color:#7c34d6; font-weight:600;">cloud AI only proposes</span> · <span style="color:#b45309; font-weight:600;">off-vehicle AI only explains.</span></p>
+      <p style="margin:16px 0 34px; font-size:12px; letter-spacing:0.03em; color:#8b94a1;">Maior Cristian-Alexandru · Universitatea „Lucian Blaga" din Sibiu · Diploma project · Demonstrable by December · Defense July 2027</p>
+
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+        <div style="display:flex; gap:12px; align-items:flex-start; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:13px 15px;">
+          <span style="flex:none; width:13px; height:13px; margin-top:3px; border-radius:4px; background:#0b8a5c;"></span>
+          <div><div style="font-size:13px; font-weight:700; color:#0b8a5c;">On-vehicle · K1 / K3</div><div style="font-size:11px; color:#55606f; margin-top:3px; line-height:1.45;">MAY ACTUATE — runs in the real-time path</div></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:13px 15px;">
+          <span style="flex:none; width:13px; height:13px; margin-top:3px; border-radius:4px; background:#7c34d6;"></span>
+          <div><div style="font-size:13px; font-weight:700; color:#7c34d6;">Cloud advisory ML</div><div style="font-size:11px; color:#55606f; margin-top:3px; line-height:1.45;">PROPOSES ONLY — recommends, never commands</div></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:13px 15px;">
+          <span style="flex:none; width:13px; height:13px; margin-top:3px; border-radius:4px; background:#1a6fd4;"></span>
+          <div><div style="font-size:13px; font-weight:700; color:#1a6fd4;">Data backbone</div><div style="font-size:11px; color:#55606f; margin-top:3px; line-height:1.45;">Railway pipes — transport / storage</div></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start; background:#fdf3f3; border:1px solid #f4d4d5; border-radius:10px; padding:13px 15px;">
+          <span style="flex:none; width:13px; height:13px; margin-top:3px; border-radius:4px; background:#d61f26;"></span>
+          <div><div style="font-size:13px; font-weight:700; color:#d61f26;">Safety supervisor</div><div style="font-size:11px; color:#55606f; margin-top:3px; line-height:1.45;">THE VETO LINE — plain C, not AI</div></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:13px 15px;">
+          <span style="flex:none; width:13px; height:13px; margin-top:3px; border-radius:4px; background:#b45309;"></span>
+          <div><div style="font-size:13px; font-weight:700; color:#b45309;">Human-in-the-loop</div><div style="font-size:11px; color:#55606f; margin-top:3px; line-height:1.45;">NEVER ACTUATES — observes / audits</div></div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:flex-start; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:13px 15px;">
+          <span style="flex:none; width:13px; height:13px; margin-top:3px; border-radius:4px; background:#5a6675;"></span>
+          <div><div style="font-size:13px; font-weight:700; color:#3a4453;">Infrastructure</div><div style="font-size:11px; color:#55606f; margin-top:3px; line-height:1.45;">Tooling — supporting</div></div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:24px; align-items:center; margin-top:22px; flex-wrap:wrap;">
+        <span style="display:inline-flex; align-items:center; gap:8px; font-size:11.5px; color:#3a4453;"><span style="color:#0b8a5c; font-size:15px;">★</span> core contribution</span>
+        <span style="display:inline-flex; align-items:center; gap:8px; font-size:11.5px; color:#3a4453;"><span style="display:inline-block; width:26px; height:15px; border-radius:4px; border:1px solid #0b8a5c; background:rgba(11,138,92,0.1);"></span> DEC-SOLID</span>
+        <span style="display:inline-flex; align-items:center; gap:8px; font-size:11.5px; color:#3a4453;"><span style="display:inline-block; width:26px; height:15px; border-radius:4px; border:1px dashed #8b94a1;"></span> STRETCH</span>
+        <span style="display:inline-flex; align-items:center; gap:8px; font-size:11.5px; color:#8b94a1; margin-left:auto;"><span style="color:#d61f26;">⚠</span> obsolete: S32N &amp; S32K5 removed — heavy ML now lives in the cloud</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 1 · SYSTEM CONTEXT ============ -->
+  <section data-screen-label="Fig 1 · System context" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 01</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">System context</h2>
+        <span style="font-size:12px; color:#8b94a1;">vehicle ⇄ Railway cloud ⇄ engineer</span>
+      </div>
+      <p style="margin:0 0 26px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">Cloud is a <em style="color:#55606f; font-style:normal; border-bottom:1px dotted #c4ccd6;">logical role</em>, not a data-center — physically Railway + one laptop. Co-location does not collapse the trust boundary.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 84px 1fr 84px 0.82fr; align-items:stretch;">
+        <!-- VEHICLE -->
+        <div style="display:flex; flex-direction:column; background:rgba(11,138,92,0.045); border:1px solid rgba(11,138,92,0.3); border-radius:14px; padding:22px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <span style="font-size:13px; font-weight:800; letter-spacing:0.1em; color:#0b8a5c;">◈ VEHICLE</span>
+            <span style="font-size:9px; font-weight:700; letter-spacing:0.08em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:20px; padding:3px 9px;">MAY ACTUATE</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #0b8a5c; border-radius:9px; padding:11px 13px;"><div style="font-size:12.5px; font-weight:700;">K3 zonal hub</div><div style="font-size:10px; color:#55606f; margin-top:3px;">Cortex-M7 · on-board AI + <span style="color:#d61f26;">veto</span></div></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px;">
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #0b8a5c; border-radius:9px; padding:10px 11px;"><div style="font-size:11px; font-weight:600;">K1 edge ×n</div><div style="font-size:9px; color:#55606f; margin-top:2px;">sense-only</div></div>
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:9px; padding:10px 11px;"><div style="font-size:11px; font-weight:600; color:#3a4453;">CAN FD bus</div><div style="font-size:9px; color:#55606f; margin-top:2px;">SocketCAN/vcan</div></div>
+            </div>
+            <div style="font-size:9.5px; color:#8b94a1; letter-spacing:0.02em;">Renode-emulated · unmodified firmware</div>
+          </div>
+        </div>
+        <!-- arrow gap 1 -->
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+          <div style="text-align:center;"><div style="font-size:9px; letter-spacing:0.08em; color:#1a6fd4; margin-bottom:2px;">MQTT ↑</div><div style="font-size:24px; color:#1a6fd4; line-height:1;">→</div><div style="font-size:8.5px; color:#8b94a1; margin-top:2px;">telemetry</div></div>
+          <div style="text-align:center;"><div style="font-size:9px; letter-spacing:0.08em; color:#7c34d6; margin-bottom:2px;">proposals+OTA</div><div style="font-size:24px; color:#7c34d6; line-height:1;">←</div><div style="font-size:8.5px; color:#8b94a1; margin-top:2px;">model down</div></div>
+        </div>
+        <!-- CLOUD -->
+        <div style="display:flex; flex-direction:column; background:rgba(26,111,212,0.045); border:1px solid rgba(26,111,212,0.28); border-radius:14px; padding:22px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <span style="font-size:13px; font-weight:800; letter-spacing:0.1em; color:#1a6fd4;">☁ RAILWAY CLOUD</span>
+            <span style="font-size:9px; letter-spacing:0.06em; color:#8b94a1;">EU-WEST · GDPR</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #1a6fd4; border-radius:9px; padding:11px 13px;"><div style="font-size:12px; font-weight:700;">Data backbone</div><div style="font-size:9.5px; color:#55606f; margin-top:2px;">MQTT → Redpanda → Influx/pgvector → FastAPI</div></div>
+            <div style="background:#ffffff; border:1px solid #e6d8f7; border-left:3px solid #7c34d6; border-radius:9px; padding:11px 13px;"><div style="display:flex; align-items:center; justify-content:space-between;"><div style="font-size:12px; font-weight:700; color:#7c34d6;">GNN advisory <span style="color:#0b8a5c;">★</span></div><span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#7c34d6; border:1px solid rgba(124,52,214,0.4); border-radius:20px; padding:2px 7px;">PROPOSES</span></div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">cross-ECU fault propagation</div></div>
+            <div style="background:#ffffff; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:9px; padding:11px 13px;"><div style="font-size:12px; font-weight:700; color:#b45309;">LLM reporter (Qwen)</div><div style="font-size:9.5px; color:#55606f; margin-top:2px;">RAG audit + explanation</div></div>
+          </div>
+        </div>
+        <!-- arrow gap 2 -->
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+          <div style="font-size:9px; letter-spacing:0.06em; color:#b45309;">dashboards</div>
+          <div style="font-size:24px; color:#b45309; line-height:1;">⇄</div>
+          <div style="font-size:8.5px; color:#8b94a1;">WebSocket</div>
+        </div>
+        <!-- ENGINEER -->
+        <div style="display:flex; flex-direction:column; justify-content:center; background:rgba(180,83,9,0.045); border:1px solid rgba(180,83,9,0.28); border-radius:14px; padding:22px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <span style="font-size:13px; font-weight:800; letter-spacing:0.1em; color:#b45309;">◐ ENGINEER</span>
+            <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#b45309; border:1px solid rgba(180,83,9,0.4); border-radius:20px; padding:3px 8px;">NEVER ACTUATES</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #b45309; border-radius:9px; padding:11px 13px;"><div style="font-size:12px; font-weight:700;">React + Recharts HITL</div><div style="font-size:9.5px; color:#55606f; margin-top:2px;">bespoke human-in-the-loop · live</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #5a6675; border-radius:9px; padding:11px 13px;"><div style="font-size:12px; font-weight:700; color:#3a4453;">Grafana</div><div style="font-size:9.5px; color:#55606f; margin-top:2px;">telemetry / engineering view</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:22px; display:flex; align-items:center; gap:10px; font-size:11px; color:#8b94a1;"><span style="color:#d61f26;">⚠</span> No S32N · No S32K5 — two on-vehicle chips only: K1 (sense) + K3 (AI + veto).</div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 2 · HARDWARE / E-E TOPOLOGY ============ -->
+  <section data-screen-label="Fig 2 · Hardware topology" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 02</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">Hardware / E-E topology</h2>
+        <span style="font-size:12px; color:#8b94a1;">K1 edge nodes on CAN FD · one K3 hub · uplink to cloud</span>
+      </div>
+      <p style="margin:0 0 24px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">Two chips only. Fully Renode-emulated — no physical board. <span style="color:#d61f26;">S32N &amp; S32K5 removed.</span></p>
+
+      <div style="display:flex; align-items:stretch; gap:28px;">
+        <div style="flex:1; position:relative; background:rgba(11,138,92,0.04); border:1px solid rgba(11,138,92,0.22); border-radius:16px; padding:16px 34px 26px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:16px;"><span style="font-size:10px; letter-spacing:0.14em; color:#0b8a5c; font-weight:700;">◈ IN-VEHICLE NETWORK</span><span style="font-size:9.5px; letter-spacing:0.06em; color:#8b94a1;">RENODE · unmodified firmware</span></div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-top:3px solid #0b8a5c; border-radius:10px; padding:12px 11px; text-align:center;"><div style="font-size:12px; font-weight:700;">K1 · powertrain</div><div style="font-size:9px; color:#55606f; margin-top:3px;">CPU · timing · heap</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-top:3px solid #0b8a5c; border-radius:10px; padding:12px 11px; text-align:center;"><div style="font-size:12px; font-weight:700;">K1 · chassis</div><div style="font-size:9px; color:#55606f; margin-top:3px;">CAN error frames</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-top:3px solid #0b8a5c; border-radius:10px; padding:12px 11px; text-align:center;"><div style="font-size:12px; font-weight:700;">K1 · body</div><div style="font-size:9px; color:#55606f; margin-top:3px;">signal acquisition</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-top:3px solid #0b8a5c; border-radius:10px; padding:12px 11px; text-align:center;"><div style="font-size:12px; font-weight:700;">K1 · acoustic</div><div style="font-size:9px; color:#55606f; margin-top:3px;">mic → FFT bands</div></div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); height:22px;">
+            <div style="margin:0 auto; width:2px; background:linear-gradient(#0b8a5c,rgba(11,138,92,0.25));"></div>
+            <div style="margin:0 auto; width:2px; background:linear-gradient(#0b8a5c,rgba(11,138,92,0.25));"></div>
+            <div style="margin:0 auto; width:2px; background:linear-gradient(#0b8a5c,rgba(11,138,92,0.25));"></div>
+            <div style="margin:0 auto; width:2px; background:linear-gradient(#0b8a5c,rgba(11,138,92,0.25));"></div>
+          </div>
+          <div style="height:7px; border-radius:6px; background:linear-gradient(90deg,rgba(11,138,92,0.25),rgba(11,138,92,0.7),rgba(11,138,92,0.25));"></div>
+          <div style="text-align:center; font-size:10px; letter-spacing:0.14em; color:#0b8a5c; margin-top:6px; font-weight:600;">CAN FD BUS · SocketCAN / vcan</div>
+          <div style="width:2px; height:18px; background:linear-gradient(rgba(11,138,92,0.25),#0b8a5c); margin:0 auto;"></div>
+          <div style="margin:0 auto; width:78%; background:#f2fbf7; border:1.5px solid rgba(11,138,92,0.5); border-radius:12px; padding:16px 20px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:11px;"><div style="font-size:15px; font-weight:800; color:#0b8a5c;">S32K3 · ZONAL HUB</div><div style="font-size:9px; letter-spacing:0.08em; color:#55606f;">Cortex-M7 · NPU</div></div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:8px 9px;"><div style="font-size:10.5px; font-weight:600;">int8 detector</div><div style="font-size:8.5px; color:#55606f;">DETECT</div></div>
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:8px 9px;"><div style="font-size:10.5px; font-weight:600;">trend / RUL</div><div style="font-size:8.5px; color:#55606f;">PREDICT</div></div>
+              <div style="background:#fdf3f3; border:1px solid #f4d4d5; border-radius:8px; padding:8px 9px;"><div style="font-size:10.5px; font-weight:700; color:#d61f26;">supervisor</div><div style="font-size:8.5px; color:#d61f26;">VETO · C</div></div>
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:8px 9px;"><div style="font-size:10.5px; font-weight:600;">ACT</div><div style="font-size:8.5px; color:#55606f;">recovery</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:none; width:238px; display:flex; flex-direction:column; justify-content:center; gap:16px;">
+          <div style="text-align:center;"><div style="font-size:9.5px; letter-spacing:0.08em; color:#1a6fd4;">TSN / uplink</div><div style="font-size:28px; color:#1a6fd4; line-height:1.1;">⇢</div><div style="font-size:9px; color:#8b94a1;">MQTT over IP</div></div>
+          <div style="background:rgba(26,111,212,0.05); border:1px solid rgba(26,111,212,0.3); border-radius:12px; padding:16px 16px;">
+            <div style="font-size:12px; font-weight:800; letter-spacing:0.08em; color:#1a6fd4; margin-bottom:9px;">☁ CLOUD GATEWAY</div>
+            <div style="font-size:10px; color:#55606f; line-height:1.6;">Railway · EU-West<br>data backbone + GNN<br>+ reporter</div>
+            <div style="margin-top:11px; font-size:9.5px; color:#7c34d6; border-top:1px solid #e7eaef; padding-top:9px;">↓ proposals + OTA model</div>
+          </div>
+          <div style="font-size:9.5px; color:#8b94a1; text-align:center; line-height:1.5;">off-vehicle · advisory only<br>never on the CAN FD bus</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 3 · REAL-TIME LOOP ============ -->
+  <section data-screen-label="Fig 3 · Real-time loop" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 03</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">On-vehicle real-time loop</h2>
+        <span style="font-size:12px; color:#8b94a1;">the closed loop that runs entirely on K3</span>
+      </div>
+      <p style="margin:0 0 30px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">Everything here is <span style="color:#0b8a5c; font-weight:600;">green — may actuate</span>, gated by the <span style="color:#d61f26; font-weight:600;">red deterministic supervisor</span>.</p>
+
+      <div style="display:flex; align-items:stretch;">
+        <div style="flex:1; background:#f7f8fa; border:1px solid rgba(11,138,92,0.4); border-radius:12px; padding:20px 16px; text-align:center;"><div style="font-size:10px; letter-spacing:0.14em; color:#0b8a5c; margin-bottom:7px;">01</div><div style="font-size:18px; font-weight:800; margin-bottom:7px;">SENSE</div><div style="font-size:10px; color:#55606f; line-height:1.5;">signals + bus telemetry<br>from K1 nodes</div></div>
+        <div style="flex:none; width:56px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#b8c0cc;">→</div>
+        <div style="flex:1; background:#f7f8fa; border:1px solid rgba(11,138,92,0.4); border-radius:12px; padding:20px 16px; text-align:center;"><div style="font-size:10px; letter-spacing:0.14em; color:#0b8a5c; margin-bottom:7px;">02</div><div style="font-size:18px; font-weight:800; margin-bottom:7px;">DETECT</div><div style="font-size:10px; color:#55606f; line-height:1.5;">int8 autoencoder<br>anomaly score · on K3</div></div>
+        <div style="flex:none; width:56px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#b8c0cc;">→</div>
+        <div style="flex:1; background:#f7f8fa; border:1px solid rgba(11,138,92,0.4); border-radius:12px; padding:20px 16px; text-align:center;"><div style="font-size:10px; letter-spacing:0.14em; color:#0b8a5c; margin-bottom:7px;">03</div><div style="font-size:18px; font-weight:800; margin-bottom:7px;">PREDICT</div><div style="font-size:10px; color:#55606f; line-height:1.5;">trend / RUL regressor<br>time-to-failure · on K3</div></div>
+        <div style="flex:none; width:56px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#d61f26;">→</div>
+        <div style="flex:1.05; background:#fdf3f3; border:1.5px solid rgba(214,31,38,0.55); border-radius:12px; padding:20px 16px; text-align:center;"><div style="font-size:10px; letter-spacing:0.14em; color:#d61f26; margin-bottom:7px;">04 · VETO</div><div style="font-size:18px; font-weight:800; color:#d61f26; margin-bottom:7px;">SUPERVISOR</div><div style="font-size:10px; color:#b3373c; line-height:1.5;">deterministic C — not AI<br>whitelist approve / veto</div></div>
+        <div style="flex:none; width:56px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#b8c0cc;">→</div>
+        <div style="flex:1; background:#f7f8fa; border:1px solid rgba(11,138,92,0.4); border-radius:12px; padding:20px 16px; text-align:center;"><div style="font-size:10px; letter-spacing:0.14em; color:#0b8a5c; margin-bottom:7px;">05</div><div style="font-size:18px; font-weight:800; margin-bottom:7px;">ACT</div><div style="font-size:10px; color:#55606f; line-height:1.5;">restart · degraded-mode<br>load-shed</div></div>
+      </div>
+
+      <div style="position:relative; margin-top:22px; height:44px;">
+        <div style="position:absolute; left:8%; right:8%; top:0; height:100%; border:2px solid #cdd4dd; border-top:0; border-radius:0 0 16px 16px;"></div>
+        <div style="position:absolute; left:50%; transform:translateX(-50%); bottom:-9px; background:#ffffff; padding:0 14px; font-size:11px; letter-spacing:0.12em; color:#0b8a5c; font-weight:600;">◀ CLOSED LOOP</div>
+        <div style="position:absolute; left:7.4%; top:22px; font-size:13px; color:#0b8a5c;">▲</div>
+      </div>
+
+      <div style="margin-top:20px; text-align:center; font-size:11.5px; letter-spacing:0.12em; color:#55606f;">BOUNDED LATENCY · SUB-SECOND CLOSED LOOP</div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 4 · AGENT PIPELINE A–E ============ -->
+  <section data-screen-label="Fig 4 · Agent pipeline A–E" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 04</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">Agent pipeline A–E</h2>
+        <span style="font-size:12px; color:#8b94a1;">now straddles the trust boundary — S32N gone</span>
+      </div>
+      <p style="margin:0 0 24px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">A &amp; B &amp; D run on K3 (may actuate) · C proposes from the cloud · E explains from the cloud. The <span style="color:#d61f26; font-weight:600;">veto (D)</span> sits on the boundary.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 2px 1fr; align-items:stretch;">
+        <!-- ON-VEHICLE -->
+        <div style="display:flex; flex-direction:column; padding-right:34px; gap:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; font-weight:800; letter-spacing:0.1em; color:#0b8a5c;">◈ ON-VEHICLE · K3</span>
+            <span style="font-size:9px; font-weight:700; letter-spacing:0.08em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:20px; padding:3px 9px;">MAY ACTUATE</span>
+          </div>
+          <div style="display:flex; gap:13px; background:#f7f8fa; border:1px solid rgba(11,138,92,0.3); border-radius:11px; padding:14px 15px;">
+            <span style="flex:none; width:32px; height:32px; border-radius:8px; background:rgba(11,138,92,0.12); color:#0b8a5c; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center;">A</span>
+            <div><div style="font-size:13.5px; font-weight:700;">Analyst</div><div style="font-size:10px; color:#55606f; margin-top:3px;">reads telemetry → anomaly score · int8 AE</div></div>
+          </div>
+          <div style="text-align:center; font-size:18px; color:#0b8a5c; line-height:0.5;">↓</div>
+          <div style="display:flex; gap:13px; background:#f7f8fa; border:1px solid rgba(11,138,92,0.3); border-radius:11px; padding:14px 15px;">
+            <span style="flex:none; width:32px; height:32px; border-radius:8px; background:rgba(11,138,92,0.12); color:#0b8a5c; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center;">B</span>
+            <div><div style="font-size:13.5px; font-weight:700;">Predictor</div><div style="font-size:10px; color:#55606f; margin-top:3px;">reads anomalies → time-to-failure · trend/RUL</div></div>
+          </div>
+          <div style="text-align:center; font-size:18px; color:#b8c0cc; line-height:0.5;">↓</div>
+          <div style="display:flex; gap:13px; background:#fdf3f3; border:1.5px solid rgba(214,31,38,0.55); border-radius:11px; padding:15px 15px;">
+            <span style="flex:none; width:32px; height:32px; border-radius:8px; background:rgba(214,31,38,0.12); color:#d61f26; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center;">D</span>
+            <div style="flex:1;"><div style="display:flex; align-items:center; justify-content:space-between;"><div style="font-size:13.5px; font-weight:800; color:#d61f26;">Supervisor</div><span style="font-size:8.5px; font-weight:700; letter-spacing:0.08em; color:#d61f26; border:1px solid rgba(214,31,38,0.45); border-radius:20px; padding:2px 8px;">THE VETO</span></div><div style="font-size:10px; color:#b3373c; margin-top:3px;">approves / vetoes → safe command · plain C</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; background:#ffffff; border:1px dashed #cdd4dd; border-radius:10px; padding:12px 14px;">
+            <span style="font-size:15px; color:#0b8a5c;">⟳</span>
+            <div style="font-size:10px; color:#55606f;">ACT executes approved recovery — restart / degrade / load-shed</div>
+          </div>
+        </div>
+
+        <!-- boundary -->
+        <div style="position:relative; background:repeating-linear-gradient(#d61f26,#d61f26 8px,transparent 8px,transparent 16px);">
+          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-90deg); white-space:nowrap; font-size:9px; font-weight:700; letter-spacing:0.2em; color:#d61f26; background:#ffffff; padding:5px 10px;">TRUST BOUNDARY</div>
+        </div>
+
+        <!-- CLOUD -->
+        <div style="display:flex; flex-direction:column; padding-left:34px; gap:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; font-weight:800; letter-spacing:0.1em; color:#1a6fd4;">☁ CLOUD · L5 / L6</span>
+            <span style="font-size:9px; letter-spacing:0.06em; color:#8b94a1;">off-vehicle</span>
+          </div>
+          <div style="display:flex; gap:13px; background:#faf6fe; border:1px solid rgba(124,52,214,0.35); border-radius:11px; padding:14px 15px;">
+            <span style="flex:none; width:32px; height:32px; border-radius:8px; background:rgba(124,52,214,0.12); color:#7c34d6; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center;">C</span>
+            <div style="flex:1;"><div style="display:flex; align-items:center; justify-content:space-between;"><div style="font-size:13.5px; font-weight:700; color:#7c34d6;">Root-cause <span style="color:#0b8a5c;">★</span></div><span style="font-size:8.5px; font-weight:700; letter-spacing:0.08em; color:#7c34d6; border:1px solid rgba(124,52,214,0.4); border-radius:20px; padding:2px 8px;">PROPOSES ONLY</span></div><div style="font-size:10px; color:#55606f; margin-top:3px;">reads path + context → GNN propagation</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding-left:4px;">
+            <span style="font-size:18px; color:#7c34d6;">↞</span>
+            <span style="font-size:9.5px; color:#7c34d6; letter-spacing:0.04em;">proposal crosses the veto — D decides, never C</span>
+          </div>
+          <div style="display:flex; gap:13px; background:#fef8ef; border:1px solid rgba(180,83,9,0.35); border-radius:11px; padding:14px 15px;">
+            <span style="flex:none; width:32px; height:32px; border-radius:8px; background:rgba(180,83,9,0.12); color:#b45309; font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center;">E</span>
+            <div style="flex:1;"><div style="display:flex; align-items:center; justify-content:space-between;"><div style="font-size:13.5px; font-weight:700; color:#b45309;">Reporter</div><span style="font-size:8.5px; font-weight:700; letter-spacing:0.08em; color:#b45309; border:1px solid rgba(180,83,9,0.4); border-radius:20px; padding:2px 8px;">NEVER ACTUATES</span></div><div style="font-size:10px; color:#55606f; margin-top:3px;">retrieves + explains → audit record · Qwen RAG</div></div>
+          </div>
+          <div style="background:#f7f8fa; border:1px solid #e7eaef; border-radius:11px; padding:14px 15px;">
+            <div style="font-size:10.5px; font-weight:700; letter-spacing:0.08em; color:#3a4453; margin-bottom:9px;">◱ SHARED MEMORY</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px;">
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #1a6fd4; border-radius:8px; padding:9px 10px;"><div style="font-size:10.5px; font-weight:600;">Time-series DB</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">Influx / Timescale</div></div>
+              <div style="background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #1a6fd4; border-radius:8px; padding:9px 10px;"><div style="font-size:10.5px; font-weight:600;">Vector DB</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">pgvector · RAG memory</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 5 · DATA BACKBONE ============ -->
+  <section data-screen-label="Fig 5 · Data backbone" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 05</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">Data backbone on Railway</h2>
+        <span style="font-size:12px; color:#8b94a1;">the pipes between vehicle and cloud</span>
+      </div>
+      <p style="margin:0 0 22px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">Hosted on Railway · EU-West (Amsterdam) · GDPR region. Carries telemetry up and proposals + OTA model down.</p>
+
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:flex; align-items:center; gap:11px; align-self:flex-start; background:rgba(11,138,92,0.06); border:1px solid rgba(11,138,92,0.28); border-radius:20px; padding:6px 15px;"><span style="font-size:13px; color:#0b8a5c;">↑</span><span style="font-size:10.5px; letter-spacing:0.08em; color:#0b8a5c; font-weight:600;">TELEMETRY UP · from K3</span></div>
+
+        <div style="display:flex; align-items:stretch;">
+          <div style="flex:1; background:#f7f8fa; border:1px solid rgba(26,111,212,0.4); border-radius:12px; padding:18px 16px; text-align:center;"><div style="font-size:15px; font-weight:800; color:#1a6fd4;">MQTT</div><div style="font-size:9.5px; color:#55606f; margin-top:5px;">Mosquitto / EMQX</div><div style="font-size:8.5px; color:#8b94a1; margin-top:7px; letter-spacing:0.08em;">INGEST</div></div>
+          <div style="flex:none; width:50px; display:flex; align-items:center; justify-content:center; font-size:24px; color:#b8c0cc;">→</div>
+          <div style="flex:1; background:#f7f8fa; border:1px solid rgba(26,111,212,0.4); border-radius:12px; padding:18px 16px; text-align:center;"><div style="font-size:15px; font-weight:800; color:#1a6fd4;">Redpanda</div><div style="font-size:9.5px; color:#55606f; margin-top:5px;">Kafka-compatible</div><div style="font-size:8.5px; color:#8b94a1; margin-top:7px; letter-spacing:0.08em;">STREAM</div></div>
+          <div style="flex:none; width:50px; display:flex; align-items:center; justify-content:center; font-size:24px; color:#b8c0cc;">→</div>
+          <div style="flex:1.15; background:#f7f8fa; border:1px solid rgba(26,111,212,0.4); border-radius:12px; padding:14px 14px; text-align:center;"><div style="font-size:13px; font-weight:800; color:#1a6fd4;">Influx / Timescale</div><div style="font-size:9.5px; color:#55606f; margin-top:5px;">+ Postgres / pgvector</div><div style="font-size:8.5px; color:#8b94a1; margin-top:7px; letter-spacing:0.08em;">STORE</div></div>
+          <div style="flex:none; width:50px; display:flex; align-items:center; justify-content:center; font-size:24px; color:#b8c0cc;">→</div>
+          <div style="flex:1; background:#f7f8fa; border:1px solid rgba(26,111,212,0.4); border-radius:12px; padding:18px 16px; text-align:center;"><div style="font-size:15px; font-weight:800; color:#1a6fd4;">FastAPI</div><div style="font-size:9.5px; color:#55606f; margin-top:5px;">serving layer</div><div style="font-size:8.5px; color:#8b94a1; margin-top:7px; letter-spacing:0.08em;">SERVE</div></div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+          <div style="background:#faf6fe; border:1px solid #e6d8f7; border-left:3px solid #7c34d6; border-radius:10px; padding:13px 14px;"><div style="font-size:12px; font-weight:700; color:#7c34d6;">GNN advisory <span style="color:#0b8a5c;">★</span></div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">consumes stored graph → proposes</div></div>
+          <div style="background:#fef8ef; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:10px; padding:13px 14px;"><div style="font-size:12px; font-weight:700; color:#b45309;">Grafana + HITL</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">dashboards · WebSocket live</div></div>
+          <div style="background:#fef8ef; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:10px; padding:13px 14px;"><div style="font-size:12px; font-weight:700; color:#b45309;">LLM reporter</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">retrieves from pgvector</div></div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:11px; align-self:flex-end; background:rgba(124,52,214,0.06); border:1px solid rgba(124,52,214,0.28); border-radius:20px; padding:6px 15px;"><span style="font-size:10.5px; letter-spacing:0.08em; color:#7c34d6; font-weight:600;">PROPOSALS + OTA MODEL DOWN · to K3</span><span style="font-size:13px; color:#7c34d6;">↓</span></div>
+      </div>
+
+      <div style="margin-top:22px; display:flex; align-items:center; gap:10px; font-size:11px; color:#8b94a1;"><span style="width:9px; height:9px; border-radius:50%; background:#1a6fd4;"></span> RAILWAY · EU-WEST (AMSTERDAM) · GDPR REGION — transport / storage only, never actuates.</div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 6 · SAFETY & TRUST BOUNDARY ============ -->
+  <section data-screen-label="Fig 6 · Safety & trust boundary" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 06</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">Safety &amp; trust boundary</h2>
+        <span style="font-size:12px; color:#8b94a1;">now two locations, not three — the S32N band collapses into the cloud</span>
+      </div>
+      <p style="margin:0 0 24px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">As you move away from the metal, the AI gets <em style="font-style:normal; color:#55606f;">more powerful and less trusted.</em> The red line is the final veto.</p>
+
+      <div style="display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:24px; background:rgba(11,138,92,0.06); border:1px solid rgba(11,138,92,0.4); border-radius:14px; padding:22px 28px;">
+          <div>
+            <div style="font-size:10.5px; letter-spacing:0.14em; color:#0b8a5c; margin-bottom:7px;">◈ ON-VEHICLE · K3</div>
+            <div style="font-size:20px; font-weight:800; margin-bottom:5px;">Certifiable AI</div>
+            <div style="font-size:11.5px; color:#55606f;">int8 detector + trend predictor · runs in the real-time path</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:23px; font-weight:800; color:#0b8a5c; letter-spacing:0.03em;">MAY ACTUATE →</div>
+            <div style="font-size:10px; color:#8b94a1; margin-top:4px;">small · quantized · certifiable</div>
+          </div>
+        </div>
+
+        <div style="position:relative; height:52px; display:flex; align-items:center; justify-content:center; margin:12px 0;">
+          <div style="position:absolute; left:0; right:0; top:50%; height:3px; background:repeating-linear-gradient(90deg,#d61f26,#d61f26 14px,transparent 14px,transparent 26px);"></div>
+          <div style="position:relative; background:#ffffff; border:1.5px solid #d61f26; border-radius:8px; padding:9px 22px; text-align:center;">
+            <span style="font-size:13.5px; font-weight:800; letter-spacing:0.1em; color:#d61f26;">⛔ DETERMINISTIC SAFETY SUPERVISOR — FINAL VETO</span>
+            <span style="display:block; font-size:9.5px; color:#b3373c; margin-top:3px; letter-spacing:0.04em;">plain C · not AI · whitelist: restart / degraded-mode / load-shed</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:24px; background:rgba(124,52,214,0.06); border:1px solid rgba(124,52,214,0.4); border-radius:14px; padding:20px 28px;">
+          <div>
+            <div style="font-size:10.5px; letter-spacing:0.14em; color:#7c34d6; margin-bottom:7px;">☁ CLOUD ADVISORY ML <span style="color:#0b8a5c;">★</span></div>
+            <div style="font-size:18px; font-weight:800; margin-bottom:5px; color:#7c34d6;">GNN propagation · root-cause</div>
+            <div style="font-size:11.5px; color:#55606f;">powerful but not certifiable · may recommend, never command</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:21px; font-weight:800; color:#7c34d6; letter-spacing:0.03em;">PROPOSES ⤴</div>
+            <div style="font-size:10px; color:#8b94a1; margin-top:4px;">wired to the supervisor, never to an actuator</div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:24px; background:rgba(180,83,9,0.05); border:1px dashed rgba(180,83,9,0.45); border-radius:14px; padding:18px 28px;">
+          <div>
+            <div style="font-size:10.5px; letter-spacing:0.14em; color:#b45309; margin-bottom:7px;">◐ CLOUD REPORTING</div>
+            <div style="font-size:17px; font-weight:800; margin-bottom:5px; color:#b45309;">LLM (Qwen) + dashboards</div>
+            <div style="font-size:11.5px; color:#55606f;">experimental + human-facing · off the safety-critical path</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:19px; font-weight:800; color:#b45309; letter-spacing:0.03em;">NEVER ACTUATES</div>
+            <div style="font-size:10px; color:#8b94a1; margin-top:4px;">observes / audits / explains</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 7 · MASTER 3-PLANE / 8-LAYER ============ -->
+  <section data-screen-label="Fig 7 · Master diagram" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:36px 42px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:4px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#0b8a5c; padding:5px 10px; border-radius:5px;">FIG 07 · MASTER</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">The platform at a glance</h2>
+        <span style="font-size:12px; color:#8b94a1;">3 planes · 8 layers (L0–L7) · 2 spines</span>
+      </div>
+      <p style="margin:0 0 16px; font-size:11.5px; color:#8b94a1; letter-spacing:0.02em;">Trust increases toward the metal · power increases toward the cloud · the veto sits on the boundary.</p>
+
+      <div style="display:flex; flex-direction:column; gap:11px;">
+        <!-- PLANE C -->
+        <div style="border:1px solid #dfe3ea; border-radius:12px; padding:11px 15px; background:#f7f8fa;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:9px;"><span style="font-size:10px; font-weight:800; letter-spacing:0.14em; color:#3a4453;">PLANE C · META</span><span style="font-size:9.5px; color:#8b94a1;">wraps everything</span></div>
+          <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #5a6675; border-radius:9px; padding:11px 14px;">
+            <span style="font-size:12px; font-weight:800; color:#3a4453; width:32px;">L7</span>
+            <div style="flex:1;"><span style="font-size:12.5px; font-weight:700;">Knowledge &amp; research workflow</span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">the Obsidian brain · MOCs, ADRs, Zotero, W&amp;B → LaTeX/Typst</span></div>
+            <span style="font-size:8.5px; font-weight:700; letter-spacing:0.08em; color:#3a4453; border:1px solid #cdd4dd; border-radius:20px; padding:3px 9px;">PROCESS</span>
+          </div>
+        </div>
+
+        <!-- PLANE A -->
+        <div style="border:1px solid rgba(11,138,92,0.3); border-radius:12px; padding:11px 15px; background:rgba(11,138,92,0.035);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:9px;"><span style="font-size:10px; font-weight:800; letter-spacing:0.14em; color:#0b8a5c;">PLANE A · ON-VEHICLE</span><span style="font-size:9.5px; color:#8b94a1;">real-time · safety-critical</span><span style="margin-left:auto; font-size:8.5px; font-weight:700; letter-spacing:0.08em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:20px; padding:3px 9px;">MAY ACTUATE</span></div>
+          <div style="display:flex; flex-direction:column; gap:7px;">
+            <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #0b8a5c; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#0b8a5c; width:32px;">L0</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700;">Silicon &amp; bus substrate</span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">K1 edge + K3 zonal · CAN FD · Renode</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:6px; padding:3px 8px;">DEC-SOLID</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #0b8a5c; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#0b8a5c; width:32px;">L1</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700;">Sense &amp; fault-injection <span style="color:#0b8a5c;">★</span></span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">signal acquisition · auto-labelled reproducible data</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:6px; padding:3px 8px;">DEC-SOLID</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #0b8a5c; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#0b8a5c; width:32px;">L2</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700;">On-vehicle AI <span style="color:#0b8a5c;">★</span></span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">DETECT + local PREDICT on K3 · int8 autoencoders</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:6px; padding:3px 8px;">DEC-SOLID</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:13px; background:#fdf3f3; border:1px solid #f4d4d5; border-left:3px solid #d61f26; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#d61f26; width:32px;">L3</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700; color:#d61f26;">Safety supervisor + ACT <span style="color:#0b8a5c;">★</span></span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">deterministic C veto · recovery — the spine of the thesis</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#d61f26; border:1px solid rgba(214,31,38,0.4); border-radius:6px; padding:3px 8px;">DEC-SOLID</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:36px;">
+          <span style="font-size:10.5px; color:#0b8a5c;">telemetry ↑ (MQTT)</span>
+          <span style="font-size:10.5px; color:#7c34d6;">↓ proposals + OTA model</span>
+        </div>
+
+        <!-- PLANE B -->
+        <div style="border:1px solid rgba(26,111,212,0.3); border-radius:12px; padding:11px 15px; background:rgba(26,111,212,0.035);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:9px;"><span style="font-size:10px; font-weight:800; letter-spacing:0.14em; color:#1a6fd4;">PLANE B · OFF-VEHICLE</span><span style="font-size:9.5px; color:#8b94a1;">cloud · advisory</span></div>
+          <div style="display:flex; flex-direction:column; gap:7px;">
+            <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #e7eaef; border-left:3px solid #1a6fd4; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#1a6fd4; width:32px;">L4</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700;">Data backbone</span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">MQTT → Redpanda → Influx/pgvector → FastAPI</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#1a6fd4; border:1px solid rgba(26,111,212,0.4); border-radius:6px; padding:3px 8px;">DEC-SOLID</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #e6d8f7; border-left:3px solid #7c34d6; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#7c34d6; width:32px;">L5</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700; color:#7c34d6;">Cloud advisory intelligence <span style="color:#0b8a5c;">★</span></span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">GNN cross-ECU propagation · proposes only</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#7c34d6; border:1px solid rgba(124,52,214,0.4); border-radius:6px; padding:3px 8px;">GNN v0 · causal STRETCH</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:13px; background:#ffffff; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:9px; padding:10px 14px;">
+              <span style="font-size:12px; font-weight:800; color:#b45309; width:32px;">L6</span>
+              <div style="flex:1;"><span style="font-size:12.5px; font-weight:700; color:#b45309;">Reporting &amp; human-in-loop</span><span style="font-size:10.5px; color:#55606f; margin-left:10px;">LLM reporter (Qwen) · Grafana · React HITL</span></div>
+              <span style="font-size:8.5px; font-weight:700; letter-spacing:0.06em; color:#b45309; border:1px dashed rgba(180,83,9,0.5); border-radius:6px; padding:3px 8px;">Grafana SOLID · LLM STRETCH</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:11px;">
+          <div style="display:flex; align-items:center; gap:11px; background:#fdf6f6; border:1px dashed #f0c9ca; border-radius:9px; padding:10px 14px;">
+            <span style="font-size:13px; color:#d61f26;">⟋</span>
+            <div><div style="font-size:11px; font-weight:700; color:#d61f26;">SPINE 1 · Safety &amp; certification</div><div style="font-size:9.5px; color:#55606f; margin-top:2px;">ISO 26262 / ASIL · SOTIF — framing, not certification</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:11px; background:#f7f8fa; border:1px dashed #cdd4dd; border-radius:9px; padding:10px 14px;">
+            <span style="font-size:13px; color:#5a6675;">⟋</span>
+            <div><div style="font-size:11px; font-weight:700; color:#3a4453;">SPINE 2 · DevOps / MLOps</div><div style="font-size:9.5px; color:#55606f; margin-top:2px;">Git · Docker · CI · DVC · W&amp;B / MLflow · pytest</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 8 · OBSIDIAN RESEARCH BRAIN ============ -->
+  <section data-screen-label="Fig 8 · Research brain" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 08</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">The Obsidian research brain</h2>
+        <span style="font-size:12px; color:#8b94a1;">L7 · process, not runtime — kept separate so the platform stays clean</span>
+      </div>
+      <p style="margin:0 0 26px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">Ingest literature and experiments → synthesize in the vault → export the thesis and paper.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 56px 1.25fr 56px 1fr; align-items:stretch;">
+        <!-- INGEST -->
+        <div style="display:flex; flex-direction:column; justify-content:center; gap:11px;">
+          <div style="font-size:10.5px; font-weight:800; letter-spacing:0.14em; color:#3a4453; margin-bottom:2px;">◇ INGEST</div>
+          <div style="background:#f7f8fa; border:1px solid #e7eaef; border-left:3px solid #5a6675; border-radius:10px; padding:12px 14px;"><div style="font-size:12px; font-weight:700;">Zotero + Better BibTeX</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">reference manager → literature notes</div></div>
+          <div style="background:#f7f8fa; border:1px solid #e7eaef; border-left:3px solid #5a6675; border-radius:10px; padding:12px 14px;"><div style="font-size:12px; font-weight:700;">arXiv / Semantic Scholar</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">automated paper ingestion</div></div>
+          <div style="background:#fef8ef; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:10px; padding:12px 14px;"><div style="font-size:12px; font-weight:700; color:#b45309;">W&amp;B / MLflow</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">experiment tracking → linked from notes</div></div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:center; font-size:26px; color:#b8c0cc;">→</div>
+        <!-- VAULT -->
+        <div style="display:flex; flex-direction:column; justify-content:center; background:#f7f8fa; border:1px solid #dfe3ea; border-radius:14px; padding:22px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <span style="font-size:14px; font-weight:800; letter-spacing:0.08em; color:#7c34d6;">◆ OBSIDIAN VAULT</span>
+            <span style="font-size:9px; letter-spacing:0.06em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.35); border-radius:20px; padding:3px 9px;">GIT BACKUP</span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px;">
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:10px 11px; text-align:center;"><div style="font-size:11px; font-weight:600;">MOCs</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">maps of content</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:10px 11px; text-align:center;"><div style="font-size:11px; font-weight:600;">Literature notes</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">per source</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:10px 11px; text-align:center;"><div style="font-size:11px; font-weight:600;">ADRs</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">decision records</div></div>
+            <div style="background:#ffffff; border:1px solid #e7eaef; border-radius:8px; padding:10px 11px; text-align:center;"><div style="font-size:11px; font-weight:600;">Daily log</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">running journal</div></div>
+            <div style="grid-column:1 / -1; background:#faf6fe; border:1px solid #e6d8f7; border-radius:8px; padding:10px 11px; text-align:center;"><div style="font-size:11px; font-weight:700; color:#7c34d6;">Thesis draft</div><div style="font-size:8.5px; color:#55606f; margin-top:2px;">the synthesis surface</div></div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:center; font-size:26px; color:#b8c0cc;">→</div>
+        <!-- EXPORT -->
+        <div style="display:flex; flex-direction:column; justify-content:center; gap:11px;">
+          <div style="font-size:10.5px; font-weight:800; letter-spacing:0.14em; color:#3a4453; margin-bottom:2px;">◇ EXPORT</div>
+          <div style="background:#f7f8fa; border:1px solid #e7eaef; border-left:3px solid #5a6675; border-radius:10px; padding:12px 14px;"><div style="font-size:12px; font-weight:700;">LaTeX / Typst</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">typesetting pipeline</div></div>
+          <div style="background:#fef8ef; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:10px; padding:12px 14px;"><div style="font-size:12px; font-weight:700; color:#b45309;">Diploma thesis</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">demonstrable by December</div></div>
+          <div style="background:#fef8ef; border:1px solid #f0e0c8; border-left:3px solid #b45309; border-radius:10px; padding:12px 14px;"><div style="font-size:12px; font-weight:700; color:#b45309;">IEEE / SAE paper</div><div style="font-size:9.5px; color:#55606f; margin-top:3px;">publication output</div></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; display:flex; align-items:center; gap:10px; font-size:11px; color:#8b94a1;"><span style="width:9px; height:9px; border-radius:2px; background:#5a6675;"></span> Meta plane · never touches the runtime safety path — it produces the record of the work.</div>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 9 · FAULT TAXONOMY ============ -->
+  <section data-screen-label="Fig 9 · Fault taxonomy" style="position:relative; width:1280px; background:#ffffff; border:1px solid #dfe3ea; border-radius:16px; overflow:hidden; box-shadow:0 12px 40px rgba(20,30,50,0.08);">
+    <div style="position:absolute; inset:0; background-image:radial-gradient(rgba(15,23,38,0.05) 1px, transparent 1px); background-size:24px 24px; opacity:0.55;"></div>
+    <div style="position:relative; padding:38px 44px;">
+      <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:800; letter-spacing:0.18em; color:#ffffff; background:#131b26; padding:5px 10px; border-radius:5px;">FIG 09</span>
+        <h2 style="margin:0; font-size:21px; font-weight:700; letter-spacing:-0.01em;">Fault taxonomy</h2>
+        <span style="font-size:12px; color:#8b94a1;">the resolved December set — tiered by how defensible the claim is</span>
+      </div>
+      <p style="margin:0 0 22px; font-size:12px; color:#8b94a1; letter-spacing:0.02em;">Flagship classes have <em style="font-style:normal; color:#55606f;">analytical ground truth</em> — prediction error is measured against a known true value.</p>
+
+      <div style="display:grid; grid-template-columns:1.5fr 1.1fr 1.3fr 1.2fr 1fr 1fr; gap:10px; padding:0 14px 9px; font-size:9.5px; letter-spacing:0.1em; color:#8b94a1; font-weight:700;">
+        <div>CLASS</div><div>SIGNAL</div><div>INJECTION</div><div>CLAIM</div><div>RECOVERY</div><div>CONFIDENCE</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:grid; grid-template-columns:1.5fr 1.1fr 1.3fr 1.2fr 1fr 1fr; gap:10px; align-items:center; background:rgba(11,138,92,0.06); border:1px solid rgba(11,138,92,0.35); border-radius:10px; padding:14px;">
+          <div style="font-size:12.5px; font-weight:700;">Memory-leak → OOM <span style="color:#0b8a5c;">★</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">heap slope</div>
+          <div style="font-size:10px; color:#55606f;">periodic alloc without free</div>
+          <div><span style="font-size:9px; font-weight:700; letter-spacing:0.04em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:5px; padding:3px 7px;">PREDICT ⏱</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">restart before OOM</div>
+          <div style="font-size:10px; font-weight:700; color:#0b8a5c;">100% · flagship</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1.5fr 1.1fr 1.3fr 1.2fr 1fr 1fr; gap:10px; align-items:center; background:rgba(11,138,92,0.06); border:1px solid rgba(11,138,92,0.35); border-radius:10px; padding:14px;">
+          <div style="font-size:12.5px; font-weight:700;">CAN → bus-off <span style="color:#0b8a5c;">★</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">TEC/REC (127→256)</div>
+          <div style="font-size:10px; color:#55606f;">inject bit/frame errors</div>
+          <div><span style="font-size:9px; font-weight:700; letter-spacing:0.04em; color:#0b8a5c; border:1px solid rgba(11,138,92,0.4); border-radius:5px; padding:3px 7px;">PREDICT ⏱</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">load-shed</div>
+          <div style="font-size:10px; font-weight:700; color:#0b8a5c;">100% <span style="color:#b45309; font-weight:400;">⚠ verify Renode</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1.5fr 1.1fr 1.3fr 1.2fr 1fr 1fr; gap:10px; align-items:center; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:14px;">
+          <div style="font-size:12.5px; font-weight:700;">Timing → deadline-miss</div>
+          <div style="font-size:10.5px; color:#3a4453;">response-time variance</div>
+          <div style="font-size:10px; color:#55606f;">load / priority inversion</div>
+          <div><span style="font-size:9px; font-weight:700; letter-spacing:0.04em; color:#1a6fd4; border:1px solid rgba(26,111,212,0.4); border-radius:5px; padding:3px 7px;">EARLY-WARNING</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">restart / rebalance</div>
+          <div style="font-size:10px; color:#3a4453;">High · detection</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1.5fr 1.1fr 1.3fr 1.2fr 1fr 1fr; gap:10px; align-items:center; background:#fef8ef; border:1px dashed #f0e0c8; border-radius:10px; padding:14px;">
+          <div style="font-size:12.5px; font-weight:700; color:#3a4453;">Thermal → threshold</div>
+          <div style="font-size:10.5px; color:#3a4453;">temp slope vs load</div>
+          <div style="font-size:10px; color:#55606f;">scripted synthetic curve</div>
+          <div><span style="font-size:9px; font-weight:700; letter-spacing:0.04em; color:#b45309; border:1px dashed rgba(180,83,9,0.5); border-radius:5px; padding:3px 7px;">METHOD DEMO</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">degraded mode</div>
+          <div style="font-size:10px; color:#b45309;">Stretch · C-MAPSS</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1.5fr 1.1fr 1.3fr 1.2fr 1fr 1fr; gap:10px; align-items:center; background:#f7f8fa; border:1px solid #e7eaef; border-radius:10px; padding:14px;">
+          <div style="font-size:12.5px; font-weight:700;">Acoustic anomaly</div>
+          <div style="font-size:10.5px; color:#3a4453;">mic FFT-band</div>
+          <div style="font-size:10px; color:#55606f;">real MIMII data</div>
+          <div><span style="font-size:9px; font-weight:700; letter-spacing:0.04em; color:#7c34d6; border:1px solid rgba(124,52,214,0.4); border-radius:5px; padding:3px 7px;">DETECTION ONLY</span></div>
+          <div style="font-size:10.5px; color:#3a4453;">flag</div>
+          <div style="font-size:10px; color:#3a4453;">100% · no lead-time</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; display:flex; gap:22px; flex-wrap:wrap; font-size:10px; color:#8b94a1;">
+        <span><span style="color:#0b8a5c; font-weight:700;">PREDICT ⏱</span> = countdown / time-to-failure motif</span>
+        <span><span style="color:#1a6fd4; font-weight:700;">EARLY-WARNING</span> = detection, not RUL</span>
+        <span><span style="color:#7c34d6; font-weight:700;">DETECTION ONLY</span> = never draw a lead-time</span>
+      </div>
+    </div>
+  </section>
+
+  <!--FIGS-END-->
+</div>
+</x-dc>
+</body>
+</html>
