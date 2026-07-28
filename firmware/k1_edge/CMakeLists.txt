@@ -1,3 +1,7 @@
-# CMakeLists.txt — standard minimal Zephyr app build for the K1 edge node:
-# find_package(Zephyr), project(sdv_k1_edge), add src/main.c, include
-# ../common for telemetry.h.
+cmake_minimum_required(VERSION 3.20.0)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+
+project(sdv_k1_edge)
+
+target_sources(app PRIVATE src/main.c)
+target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
