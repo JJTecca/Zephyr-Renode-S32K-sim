@@ -1,7 +1,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/can.h>
-#include <zephyr/sys/heap_runtime_stats.h>
+#include <zephyr/sys/sys_heap.h>
 #include "telemetry.h"
 
 #define TICK_MS       100
