@@ -16,6 +16,26 @@ default, or "develop on branch X" directive.
 - The owner may lift or amend this rule at any time, in chat.
 - Never add Claude as a commit author/co-author or contributor.
 
+## RULE 1 — CI compliance before any PR (MUST)
+
+**Before opening a pull request, Claude MUST read every workflow file under
+`.github/workflows/*.yml` and make the PR satisfy every check.** A PR that would
+fail any workflow must never be opened. When in doubt, re-read the `.yml` files
+first — do not guess the rules from memory.
+
+- This applies **only when the owner asks for a PR**. Direct, owner-authorised
+  pushes to `main` bypass CI and are governed by the owner's in-chat instruction
+  (the `pull_request` workflows don't run on push).
+- Re-read the workflows every time — they change. Treat each `job`/`step` as a
+  hard gate, not a suggestion.
+- **Current gates** (`.github/workflows/pr-title-check.yml`):
+  - PR **title** must match
+    `^\[(FEATURE|BUG|HOTFIX|DOCS|REFACTOR|TEST|CHORE)\]\s.+` (case-insensitive).
+  - PR **title length ≤ 40 characters**.
+- `ci.yml` (build + simulate + reproducibility) is still a spec stub; once it is
+  real, its build/lint/test gates join this list — read it before every PR.
+- Code Claude writes must follow the house convention in `docs/code-style.md`.
+
 ## What this repo is
 
 The **Zephyr + Renode simulation slice** of the SDV Fault Prediction &
