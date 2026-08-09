@@ -1,8 +1,62 @@
-# ci.yml — two jobs, will do:
-# build: zephyrprojectrtos/ci container — west init/update (allowlisted
-#   modules only), build k3_hub + both k1_edge instances for
-#   mr_canhubk3/s32k344, upload zephyr.elf artifacts.
-# simulate: fetch Renode portable (pinned release), run
-#   renode-test tests/renode/topology_boot.robot against the built ELFs;
-#   nightly: seeded campaign (run_campaign.py) and assert byte-identical CSV
-#   for the fixed seed — the reproducibility gate.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Build firmware (mr_canhubk3/s32k344)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout into a workspace subdir
+        uses: actions/checkout@v4
+        with:
+          path: Zephyr-Renode-S32K-sim
+
+      - name: Set up Zephyr + west + SDK (auto-matches SDK_VERSION)
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: Zephyr-Renode-S32K-sim
+          toolchains: arm-zephyr-eabi
+
+      - name: Build K1 edge
+        run: west build -b mr_canhubk3/s32k344 Zephyr-Renode-S32K-sim/firmware/k1_edge -d build/k1_powertrain
+
+      - name: Build K3 hub
+        run: west build -b mr_canhubk3/s32k344 Zephyr-Renode-S32K-sim/firmware/k3_hub -d build/k3_hub
+
+      - name: Upload ELFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: elfs
+          path: |
+            build/k1_powertrain/zephyr/zephyr.elf
+            build/k3_hub/zephyr/zephyr.elf
+
+  simulate:
+    name: Renode smoke test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch built ELFs
+        uses: actions/download-artifact@v4
+        with:
+          name: elfs
+          path: build
+
+      - name: Run Renode Robot tests
+        uses: antmicro/renode-test-action@v5
+        with:
+          tests-to-run: tests/renode/k1_uart.robot
+          artifacts-path: renode-artifacts
+
+      - name: Upload Renode logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renode-logs
+          path: renode-artifacts
