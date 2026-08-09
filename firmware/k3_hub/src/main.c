@@ -62,6 +62,7 @@ int main(void)
             struct sdv_telem_frame *tf = (struct sdv_telem_frame *)frame.data;
             printk("TELEM,%lld,%u,%u,%u,%u\n",
                    k_uptime_get(), tf->node, tf->signal, tf->seq, tf->value);
+            /* k_uptime_get = @return Current uptime in milliseconds. */
         }
     }
     return 0;
