@@ -1,0 +1,46 @@
+name: Vault Notes
+
+# Regenerate the vault's codebase graph whenever code lands on main, and commit
+# the refreshed notes back. Deterministic (no LLM) -- see .github/scripts/gen_vault_notes.py.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'firmware/**'
+      - 'sim/**'
+      - 'scripts/**'
+      - '.github/scripts/gen_vault_notes.py'
+      - '.github/workflows/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vault-notes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Regenerate codebase notes
+        run: python .github/scripts/gen_vault_notes.py
+
+      - name: Commit if the graph changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vault/70-Codebase
+          if git diff --cached --quiet; then
+            echo "vault graph already in sync"
+          else
+            git commit -m "[DOCS] Sync codebase vault notes [skip ci]"
+            git push
+          fi
