@@ -3,7 +3,24 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'firmware/**'
+      - 'sim/**'
+      - 'tests/renode/**'
+      - 'west.yml'
+      - '.github/workflows/ci.yml'
   pull_request:
+    paths:
+      - 'firmware/**'
+      - 'sim/**'
+      - 'tests/renode/**'
+      - 'west.yml'
+      - '.github/workflows/ci.yml'
+
+# Cancel an in-progress CI run when a newer commit lands on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -31,12 +48,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: elfs
+          retention-days: 7
           path: |
             build/k1_powertrain/zephyr/zephyr.elf
             build/k3_hub/zephyr/zephyr.elf
 
   simulate:
-    name: Renode smoke test
+    name: Renode smoke + fault test
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -59,4 +77,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: renode-logs
+          retention-days: 7
           path: renode-artifacts
