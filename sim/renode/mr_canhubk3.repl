@@ -1,4 +1,12 @@
 // -----------------------------------------------------------------------------
+// STATUS: PARKED / not currently referenced. The sim runs on the full upstream
+// platforms/cpus/nxp-s32k388.repl (k1_edge.repl / k3_hub_s32k388.repl point
+// there), which boots the Zephyr v4.2.0 firmware and streams UART telemetry;
+// CAN reports "unavailable_sim" and is non-fatal. This stripped board platform
+// makes the FlexCAN clock resolve, but its clock tags are tuned to Antmicro's
+// Zephyr build and abort our v4.2.0 in pre-kernel init. Kept for the record and
+// for future CAN work (on hardware, or after updating the tags for v4.2.0).
+// -----------------------------------------------------------------------------
 // mr_canhubk3.repl -- Renode platform for the NXP MR-CANHUBK3 (S32K344) board.
 //
 // Copied verbatim from the Renode project:
