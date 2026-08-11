@@ -14,6 +14,6 @@ west build -b mr_canhubk3/s32k344 firmware\k3_hub -d build\k3_hub -p always
 echo "Removing old configuration on K1 zonal"
 Remove-Item -Recurse -Force build\k1_powertrain -ErrorAction SilentlyContinue
 echo "Generating .elf file for s32k1"
-west build -b mr_canhubk3/s32k344 firmware\k1_edge -d build\k1_powertrain 
+west build -b mr_canhubk3/s32k344 firmware\k1_edge -d build\k1_powertrain -p always
 pause
 
