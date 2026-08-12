@@ -1,0 +1,6 @@
+/* ADR-017: enable lpuart1 as the inter-node telemetry bus (Renode UART hub
+ * stands in for CAN FD in simulation). lpuart2 stays the console. */
+&lpuart1 {
+    status = "okay";
+    current-speed = <115200>;
+};

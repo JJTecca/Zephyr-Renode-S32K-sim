@@ -1,53 +1,55 @@
 /*****************************************************************************
 * File:        main.c
 * Description: K1 edge node -- sense-only; streams heap telemetry. NEVER actuates.
+*              Telemetry goes out three ways: console UART (dataset stream),
+*              CAN when the bus is up (silicon), and the inter-node link UART
+*              (lpuart1) -- the Renode UART hub that stands in for CAN FD in
+*              simulation (ADR-017).
 * Layer:       firmware/k1_edge  (on-vehicle sense node)
 * Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing
 * Copyright (c) 2026 Maior Cristian-Alexandru
 *****************************************************************************/
 
-/***************************************************
-* INCLUDE FILES
-***************************************************/
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/can.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/sys/sys_heap.h>
 #include "telemetry.h"
 
-/***************************************************
-* MACRO DEFINITIONS
-***************************************************/
 #define TICK_MS       100
 #define LEAK_HEAP_SZ  8192
 
-/***************************************************
-* STATIC DATA
-***************************************************/
-/* volatile: re-read each loop so Renode's mid-run writes are observed. */
 static struct sdv_fault_ctl volatile sdv_fault_ctl;
 
 K_HEAP_DEFINE(leak_heap, LEAK_HEAP_SZ);
 
 static const struct device *can_dev;
-static bool     can_ok;          /* true once the CAN controller is running */
+static const struct device *link_uart;   /* inter-node telemetry bus (lpuart1) */
+static bool     can_ok;
 static uint16_t seq;
 static size_t   total_leaked;
 
-/***************************************************
-* FUNCTION PROTOTYPES
-***************************************************/
-static void send_telem(uint8_t signal, uint32_t value);
+/* Emit one telemetry record as a text line on the inter-node link UART:
+ * "L,node,signal,seq,value\n" -- K3 parses these (ADR-017 transport). */
+static void link_emit(uint8_t signal, uint32_t value)
+{
+    char buf[48];
+    int n = snprintk(buf, sizeof(buf), "L,%u,%u,%u,%u\n",
+                     (unsigned)CONFIG_SDV_NODE_ID, signal, seq, value);
+    for (int i = 0; i < n; i++) {
+        uart_poll_out(link_uart, buf[i]);
+    }
+}
 
-/*****************************************************************************
-* Function:    send_telem
-* Description: Emit one sample. Always prints a CSV line on UART (the sim
-*              dataset stream); also TX on CAN when the bus is up (silicon).
-*****************************************************************************/
 static void send_telem(uint8_t signal, uint32_t value)
 {
     printk("TELEM,%lld,%u,%u,%u,%u\n",
            k_uptime_get(), (unsigned)CONFIG_SDV_NODE_ID, signal, seq, value);
+
+    if (link_uart) {
+        link_emit(signal, value);
+    }
 
     if (can_ok) {
         struct sdv_telem_frame tf = {
@@ -65,19 +67,19 @@ static void send_telem(uint8_t signal, uint32_t value)
     seq++;
 }
 
-/*****************************************************************************
-* Function:    main
-* Description: Boot, bring up CAN if available, then every 100 ms:
-*              fault-check, read heap, stream telemetry.
-* Returns:     0 (does not return in practice).
-*****************************************************************************/
 int main(void)
 {
     printk("K1,boot,node=%d\n", CONFIG_SDV_NODE_ID);
 
-    /* CAN is optional in sim: the Renode S32K388 model doesn't drive the
-     * FlexCAN clock, so init fails here -- not fatal, UART still streams.
-     * On real silicon the clock is real and CAN comes up normally. */
+    /* Inter-node link UART (lpuart1): the sim's stand-in bus (ADR-017). */
+    link_uart = DEVICE_DT_GET(DT_NODELABEL(lpuart1));
+    if (device_is_ready(link_uart)) {
+        printk("K1,link,ok\n");
+    } else {
+        link_uart = NULL;
+        printk("K1,link,unavailable\n");
+    }
+
     can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
     if (device_is_ready(can_dev)) {
         int ret = can_start(can_dev);
@@ -92,7 +94,6 @@ int main(void)
     }
 
     while (1) {
-        /* Fault injection: leak if armed by Renode in virtual time. */
         if (sdv_fault_ctl.magic == SDV_FAULT_MAGIC &&
             sdv_fault_ctl.leak_bytes_per_tick > 0) {
             void *p = k_heap_alloc(&leak_heap,

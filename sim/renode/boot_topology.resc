@@ -1,24 +1,30 @@
-# boot_topology.resc -- boot K1 + K3 on one shared CAN bus, then auto-start.
-# Run from a Renode monitor:
-#   i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/boot_topology.resc
+# boot_topology.resc -- K3 + K1 on a shared UART "bus" (Renode UART hub),
+# standing in for CAN FD in sim (ADR-017). The CAN hub is kept but inert until
+# CAN works on hardware.
 
-# Shared virtual CAN bus
-emulation CreateCANHub "canbus0"
+emulation CreateCANHub  "canbus0"
+emulation CreateUARTHub "uartbus0"
 
-# ---- K3 zonal hub (the listener) ----
+# ---- K3 zonal hub (the aggregator) ----
 mach create "k3_hub"
 machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k3_hub_s32k388.repl
 sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k3_hub/zephyr/zephyr.elf
 cpu0 VectorTableOffset `sysbus GetSymbolAddress "_vector_table"`
-connector Connect sysbus.can0 canbus0
+connector Connect sysbus.can0    canbus0
+connector Connect sysbus.lpuart1 uartbus0
 showAnalyzer sysbus.lpuart2
 
-# ---- K1 powertrain, node 1 (the sender) ----
+# ---- K1 powertrain, node 1 (sender) ----
 mach create "k1_powertrain"
 machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k1_edge.repl
 sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k1_powertrain/zephyr/zephyr.elf
 cpu0 VectorTableOffset `sysbus GetSymbolAddress "_vector_table"`
-connector Connect sysbus.can0 canbus0
+connector Connect sysbus.can0    canbus0
+connector Connect sysbus.lpuart1 uartbus0
 showAnalyzer sysbus.lpuart2
+
+# cross-machine sync so bytes cross cleanly (Antmicro's two-node test uses these)
+emulation SetGlobalQuantum "0.000025"
+emulation SetGlobalSerialExecution True
 
 start

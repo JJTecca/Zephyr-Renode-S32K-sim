@@ -1,0 +1,2 @@
+Clear
+i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/boot_topology.resc
