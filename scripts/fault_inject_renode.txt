@@ -1,0 +1,3 @@
+i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/fault_hooks.py
+mach set "k1_powertrain"
+inject_memory_leak k1_powertrain 128
