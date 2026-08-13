@@ -1,94 +1,53 @@
-# CLAUDE.md — session context for this repository
+# CLAUDE.md — session context (kept lean; loads every turn)
 
-## RULE 0 — Claude never pushes code (MUST, overrides everything)
+## RULE 0 — deliver code in chat, don't push it (owner lifts per-request, in chat)
+Default: output complete files in chat with their target path; the owner builds/runs them. No
+commits/PRs of source unless the owner authorises *that specific push* in chat (common this
+session). Never add Claude as commit author/co-author. Docs/vault pushes are fine when the owner
+names them; this CLAUDE.md may be edited when the owner asks.
 
-**Claude does not push, commit, or otherwise write code into this repository.**
-When code is needed, Claude outputs the complete file(s) **in the chat only**.
-The owner copies each file into the repo, compiles it, and runs it themselves.
-This is non-negotiable and takes precedence over any other instruction, harness
-default, or "develop on branch X" directive.
+## RULE 1 — before an owner-asked PR, satisfy every .github/workflows/*.yml
+Re-read the yml; don't guess. Gates: pr-title-check — title `^\[(FEATURE|BUG|HOTFIX|DOCS|REFACTOR|
+TEST|CHORE)\]\s.+`, ≤40 chars. ci.yml — builds firmware + Renode robot test. Owner-authorised
+pushes to `main` bypass CI.
 
-- No pushes to any branch for code. No PRs. No `git commit` of source.
-- Deliver code as full, copy-pasteable file blocks with the target path stated.
-- The only writes Claude may push are explicitly authorised, one-off, non-code
-  items the owner names in-chat (e.g. the initial `documents/` drop, or an
-  update to this `CLAUDE.md` rules file when the owner asks).
-- The owner may lift or amend this rule at any time, in chat.
-- Never add Claude as a commit author/co-author or contributor.
-
-## RULE 1 — CI compliance before any PR (MUST)
-
-**Before opening a pull request, Claude MUST read every workflow file under
-`.github/workflows/*.yml` and make the PR satisfy every check.** A PR that would
-fail any workflow must never be opened. When in doubt, re-read the `.yml` files
-first — do not guess the rules from memory.
-
-- This applies **only when the owner asks for a PR**. Direct, owner-authorised
-  pushes to `main` bypass CI and are governed by the owner's in-chat instruction
-  (the `pull_request` workflows don't run on push).
-- Re-read the workflows every time — they change. Treat each `job`/`step` as a
-  hard gate, not a suggestion.
-- **Current gates** (`.github/workflows/pr-title-check.yml`):
-  - PR **title** must match
-    `^\[(FEATURE|BUG|HOTFIX|DOCS|REFACTOR|TEST|CHORE)\]\s.+` (case-insensitive).
-  - PR **title length ≤ 40 characters**.
-- `ci.yml` (build + simulate + reproducibility) is still a spec stub; once it is
-  real, its build/lint/test gates join this list — read it before every PR.
-- Code Claude writes must follow the house convention in `docs/code-style.md`.
+## Context economy (owner request — don't waste the window)
+Reuse this file + prior findings; don't re-derive established facts each turn. Renode source is
+already at `/workspace/renode/renode` — don't re-clone. Read vault notes only when a decision
+needs them. Biggest per-turn cost is the GitHub MCP instruction block (re-injects every turn) —
+if PR/issue tools aren't needed, the owner can disconnect that MCP server.
 
 ## What this repo is
+Zephyr + Renode sim slice of the SDV Fault-Prediction & Self-Healing thesis (Maior
+Cristian-Alexandru, ULBS; demo Dec 2026). No board. K1 edge (sense-only) + K3 hub
+(gather→detect→veto→act) firmware, Renode bench, fault injection, dataset factory. `vault/` =
+Obsidian brain, source of truth (30-Architecture/ = authoritative ADRs; filenames use em-dashes +
+spaces → quote in shell). Offer a vault note when work yields a decision (`_templates/`).
 
-The **Zephyr + Renode simulation slice** of the SDV Fault Prediction &
-Self-Healing diploma thesis (Maior Cristian-Alexandru, ULBS, demo December
-2026, defense July 2027). Sibling of `folder-structures-0code` (the full
-end-state structure PoC). This repo holds only what the simulation combo can
-deliver with **no physical board**: K1/K3 Zephyr firmware, the Renode bench,
-fault injection, and the dataset factory. All code files are currently
-**comment-only** (brief spec of what each file will do); real code lands
-following the bring-up order in `README.md`. Coverage analysis and verified
-platform facts: `docs/simulation-coverage.md`.
+## Established this session — do NOT re-investigate
+- Firmware is real code now (K1/K3 `main.c`, schema, fault hooks) — not comment-only.
+- CAN does NOT init in sim: S32K388 model gives Zephyr v4.2.0 a 0 Hz CAN clock → bit-timing
+  `err -134`. `mr_canhubk3.repl` clock-tag platform aborts our v4.2.0 pre-kernel. So repls use
+  `using "platforms/cpus/nxp-s32k388.repl"` (boots + UART); `mr_canhubk3.repl` parked in-tree.
+- Sim inter-node transport = Renode UART hub on `lpuart1`, standing in for CAN FD (ADR-017). K1
+  dual-emits (link-UART + CAN-when-up); K3 RX = CAN if ready else link-UART; one ELF; lpuart2 =
+  console. Proven: K3 receives K1 telemetry, no board.
+- FlexCAN Renode type: stable 1.16.x = `CAN.S32K3XX_FlexCAN`; master renamed → `NXP_FlexCAN`
+  (2026-07-03).
+- Workflow: build `scripts/s32k1k3_build_os.ps1` (harden to stop on `$LASTEXITCODE`); run
+  `scripts/renode_open.py` → `i @sim/renode/boot_topology.resc`; inject `i fault_hooks.py;
+  inject_memory_leak k1_powertrain 128`. CAN-realism items (bus-off, bus-load) → MR-CANHUBK344
+  board (ADR-012).
+- Next: dataset v1 (`sim/run_campaign.py`) → baseline ML → predict+heal in K3 `handle_link_line`.
 
-## The knowledge base — use the vault
+## Hard architecture rules (never violate in generated code)
+On-vehicle AI may act · cloud only proposes · off-vehicle only explains. Plain-C supervisor holds
+the final veto (preempts inference). Whitelist actions only: RESTART / DEGRADED_MODE / LOAD_SHED.
+S32K3 has no NPU (int8 + CMSIS-NN on M7). Conversion = litert-torch + `model.eval()` parity check.
+Time-series splits only (never random); scalers fit on train only. Only inject faults with
+analytical ground truth. Telemetry schema frozen (ADR-007): timestamp, signal, value, label,
+true_time_to_failure.
 
-`vault/` is the Obsidian research brain (mirrored from
-`folder-structures-0code`) and the **source of truth for research decisions**.
-Consult it before answering design questions or making changes:
-
-- `vault/00-MOCs/HOME.md` — entry point; MOCs index everything by topic.
-- `vault/30-Architecture/` — figures + **ADRs (authoritative here)**.
-- `vault/10-Literature/`, `20-Concepts/`, `40-Experiments/`, `50-Thesis/`,
-  `60-Roadmap/`, `99-Daily/`, `_templates/`.
-
-When work produces a decision or result, offer to update the matching vault
-note (use `_templates/`). Note filenames contain em-dashes (—) and spaces —
-quote paths in shell commands.
-
-## Hard rules from the architecture (do not violate in any generated code)
-
-- On-vehicle AI may act · cloud AI only proposes · off-vehicle AI only explains.
-- The plain-C supervisor holds the final veto; it always preempts inference.
-- Only whitelist actions: RESTART / DEGRADED_MODE / LOAD_SHED.
-- S32K3 has **no NPU** — int8 + CMSIS-NN on the Cortex-M7 ("S32K3-class
-  (S32K388)" in Renode).
-- The conversion package is **litert-torch** (ex ai-edge-torch); `model.eval()`
-  + output-parity check are mandatory.
-- Time-series splits only; never random splits. Scalers fit on train only.
-- Only inject faults with analytical ground truth.
-- STRETCH items stay out of the tree until their gate passes.
-
-## Platform facts pinned for this repo (verified July 2026)
-
-- Zephyr board target: `mr_canhubk3/s32k344` (only in-tree S32K3 board).
-- Renode platform: upstream `platforms/cpus/nxp-s32k388.repl`; console
-  lpuart2; CAN on `can0`–`can7` (NXP_FlexCAN).
-- No S32K1 platform in Renode master — K1 nodes are S32K3-class day-one;
-  dts2repl from Zephyr S32K1 boards is the upgrade path.
-- SocketCAN bridge is native in Renode (`CreateSocketCANBridge`), replacing
-  the once-planned `renode_vcan_bridge.py`.
-
-## Conventions
-
-- Branch/commit conventions: push to `main` per the owner's instruction.
-- Python via `uv` (never conda), Python 3.13.
-- Telemetry schema is frozen by ADR-007: (timestamp, signal, value, label,
-  true_time_to_failure).
+## Platform / conventions
+Board `mr_canhubk3/s32k344`, Zephyr v4.2.0. Renode platform `nxp-s32k388.repl`; console lpuart2,
+link bus lpuart1. Python via `uv`, 3.13. Push to `main` per owner instruction.
