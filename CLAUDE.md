@@ -11,6 +11,12 @@ Re-read the yml; don't guess. Gates: pr-title-check — title `^\[(FEATURE|BUG|H
 TEST|CHORE)\]\s.+`, ≤40 chars. ci.yml — builds firmware + Renode robot test. Owner-authorised
 pushes to `main` bypass CI.
 
+## RULE 2 — the simulation roadmap is mandated reading (MUST)
+Before any roadmap / plan / "what's next" / scope work, READ
+`documents/SDV_Sim_Roadmap_September.pdf` — the authoritative simulation-only sprint plan (mid-Aug →
+30 Sep 2026; all 8 layers L0–L7; Sprints 0–6 with exit criteria). Follow its sprints and exit
+criteria; do not invent a parallel plan. Regenerate the PDF only when the owner asks.
+
 ## Context economy (owner request — don't waste the window)
 Reuse this file + prior findings; don't re-derive established facts each turn. Renode source is
 already at `/workspace/renode/renode` — don't re-clone. Read vault notes only when a decision
