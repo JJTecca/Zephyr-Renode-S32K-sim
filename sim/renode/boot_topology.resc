@@ -27,4 +27,7 @@ showAnalyzer sysbus.lpuart2
 emulation SetGlobalQuantum "0.000025"
 emulation SetGlobalSerialExecution True
 
+# Create file for logs
+sysbus.lpuart2 CreateFileBackend @D:/zephyr-ws/Zephyr-Renode-S32K-sim/k1_telem.log
+
 start

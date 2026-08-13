@@ -1,20 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, csv, re, subprocess, tempfile
+import argparse, csv, re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-RENODE_CANDIDATES = [r"D:\Renode\bin\Renode.exe", r"D:\Renode\Renode.exe"]
 SIG = {1: "heap_free", 2: "heap_used"}
-
-
-def find_renode(explicit):
-    if explicit:
-        return explicit
-    for c in RENODE_CANDIDATES:
-        if Path(c).exists():
-            return c
-    return "renode"  # assume on PATH
 
 
 def coerce(v):
@@ -26,84 +16,79 @@ def coerce(v):
     return v
 
 
-def read_config(path, args):
-    cfg = dict(node="k1", signal="heap_free", baseline_s=3,
-               leak_bytes_per_tick=128, tick_hz=10, run_s=12)
-    if path and Path(path).exists():                       # tiny flat-YAML reader (no pyyaml)
+def read_config(path):
+    cfg = dict(leak_bytes_per_tick=128, tick_hz=10)
+    if path and Path(path).exists():
         for line in Path(path).read_text().splitlines():
             line = line.split("#", 1)[0].strip()
             if ":" in line:
                 k, v = line.split(":", 1)
                 cfg[k.strip()] = coerce(v.strip())
-    if args.leak is not None:      cfg["leak_bytes_per_tick"] = args.leak
-    if args.baseline is not None:  cfg["baseline_s"] = args.baseline
-    if args.run is not None:       cfg["run_s"] = args.run
     return cfg
 
 
-def build_resc(cfg, uart_log):
-    repl  = (REPO / "sim/renode/k1_edge.repl").as_posix()
-    elf   = (REPO / "build/k1_powertrain/zephyr/zephyr.elf").as_posix()
-    hooks = (REPO / "sim/renode/fault_hooks.py").as_posix()
-    node, leak = cfg["node"], cfg["leak_bytes_per_tick"]
-    rest = cfg["run_s"] - cfg["baseline_s"]
-    return f'''mach create "{node}"
-machine LoadPlatformDescription @{repl}
-sysbus LoadELF @{elf}
-cpu0 VectorTableOffset `sysbus GetSymbolAddress "_vector_table"`
-sysbus.lpuart2 CreateFileBackend @{Path(uart_log).as_posix()}
-i @{hooks}
-mach set "{node}"
-emulation RunFor "{cfg["baseline_s"]}"
-inject_memory_leak {node} {leak}
-emulation RunFor "{rest}"
-quit
-'''
-
-
-def parse_and_label(uart_log, cfg, out_csv):
-    inject_ms  = cfg["baseline_s"] * 1000
-    rate_per_s = cfg["leak_bytes_per_tick"] * cfg["tick_hz"]
-    rows = []
+def parse_rows(uart_log):
+    """[(t, sig, val), ...] from TELEM,uptime,node,sig,seq,val lines."""
+    out = []
     for line in Path(uart_log).read_text(errors="ignore").splitlines():
         m = re.match(r"TELEM,(\d+),(\d+),(\d+),(\d+),(\d+)", line.strip())
-        if not m:
-            continue
-        t, _node, sig, _seq, val = map(int, m.groups())
-        label = "normal" if t < inject_ms else "faulty"
-        ttf = round(val / rate_per_s, 3) if (label == "faulty" and sig == 1) else ""
-        rows.append((t, SIG.get(sig, sig), val, label, ttf))
+        if m:
+            t, _node, sig, _seq, val = map(int, m.groups())
+            out.append((t, sig, val))
+    return out
+
+
+def find_inject_ms(rows, explicit):
+    """Inject moment: given, else the first non-zero heap_used sample."""
+    if explicit is not None:
+        return explicit
+    for (t, sig, val) in rows:
+        if sig == 2 and val > 0:
+            return t
+    return None
+
+
+def label(rows, inject_ms, rate_per_s, out_csv):
     with open(out_csv, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["timestamp", "signal", "value", "label", "true_ttf"])
-        w.writerows(rows)
+        for (t, sig, val) in rows:
+            faulty = inject_ms is not None and t >= inject_ms
+            lab = "faulty" if faulty else "normal"
+            # analytical ground truth: heap_free / drain-rate
+            ttf = round(val / rate_per_s, 3) if (faulty and sig == 1) else ""
+            w.writerow([t, SIG.get(sig, sig), val, lab, ttf])
     return len(rows)
 
-
+# Label a captured K1 UART telemetry log into a reproducible dataset CSV.
+# python sim/run_campaign.py --log D:/.../k1_telem.log
+#
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="Label a K1 UART log into a dataset CSV.")
+    ap.add_argument("--log", required=True, help="captured K1 UART telemetry log")
     ap.add_argument("--config", default=str(REPO / "sim/configs/memory_leak.yaml"))
-    ap.add_argument("--leak", type=int)
-    ap.add_argument("--baseline", type=float)
-    ap.add_argument("--run", type=float)
-    ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--renode")
+    ap.add_argument("--inject-ms", type=int, default=None,
+                    help="uptime(ms) the leak was injected; omit to auto-detect")
+    ap.add_argument("--out", default=None, help="output CSV path")
+    ap.add_argument("--seed", type=int, default=42, help="tag only (filename)")
     args = ap.parse_args()
 
-    cfg = read_config(args.config, args)
-    renode = find_renode(args.renode)
+    cfg = read_config(args.config)
+    rate_per_s = cfg["leak_bytes_per_tick"] * cfg["tick_hz"]
+
+    rows = parse_rows(args.log)
+    if not rows:
+        raise SystemExit(f"no TELEM lines in {args.log}")
+
+    inject_ms = find_inject_ms(rows, args.inject_ms)
+
+    # Create logs dataset directory at paste the output there found in the UART
     (REPO / "datasets").mkdir(exist_ok=True)
-    out_csv = REPO / "datasets" / f"memory_leak_leak{cfg['leak_bytes_per_tick']}_seed{args.seed}.csv"
+    out_csv = str(REPO / "datasets" / f"memory_leak_leak{cfg['leak_bytes_per_tick']}_seed{args.seed}.csv")
 
-    with tempfile.TemporaryDirectory() as td:
-        uart_log = Path(td) / "telemetry.log"
-        resc = Path(td) / "campaign.resc"
-        resc.write_text(build_resc(cfg, uart_log))
-        print(f"[campaign] renode: {renode}")
-        subprocess.run([renode, "--disable-gui", "--console", str(resc)], check=True)
-        n = parse_and_label(uart_log, cfg, out_csv)
-
-    print(f"[campaign] wrote {n} rows -> {out_csv}")
+    n = label(rows, inject_ms, rate_per_s, out_csv)
+    where = "given" if args.inject_ms is not None else "auto-detected"
+    print(f"[label] {n} rows | inject_ms={inject_ms} ({where}) -> {out_csv}")
 
 
 if __name__ == "__main__":
