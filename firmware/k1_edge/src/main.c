@@ -1,11 +1,10 @@
 /*****************************************************************************
 * File:        main.c
-* Description: K1 edge node -- sense-only; streams heap telemetry. NEVER actuates.
-*              Telemetry goes out three ways: console UART (dataset stream),
-*              CAN when the bus is up (silicon), and the inter-node link UART
-*              (lpuart1) -- the Renode UART hub that stands in for CAN FD in
-*              simulation (ADR-017).
-* Layer:       firmware/k1_edge  (on-vehicle sense node)
+* Description: K1 edge node -- sense-only; streams heap + loop-latency telemetry.
+*              NEVER actuates. Emits on console UART, CAN-when-up, and the
+*              inter-node link UART (lpuart1, ADR-017). Two injectable faults:
+*              memory-leak (accumulating) and timing/deadline-miss (ramping).
+* Layer:       firmware/k1_edge (L1 sense + inject)
 * Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing
 * Copyright (c) 2026 Maior Cristian-Alexandru
 *****************************************************************************/
@@ -19,6 +18,7 @@
 
 #define TICK_MS       100
 #define LEAK_HEAP_SZ  8192
+#define BUSY_CAP_US   500000u   /* stalling threshold because we dont want to go higher */
 
 static struct sdv_fault_ctl volatile sdv_fault_ctl;
 
@@ -29,6 +29,7 @@ static const struct device *link_uart;   /* inter-node telemetry bus (lpuart1) *
 static bool     can_ok;
 static uint16_t seq;
 static size_t   total_leaked;
+static uint32_t busy_accum_us;            /* ramping deadline-miss injection */
 
 /* Emit one telemetry record as a text line on the inter-node link UART:
  * "L,node,signal,seq,value\n" -- K3 parses these (ADR-017 transport). */
@@ -94,21 +95,38 @@ int main(void)
     }
 
     while (1) {
-        if (sdv_fault_ctl.magic == SDV_FAULT_MAGIC &&
-            sdv_fault_ctl.leak_bytes_per_tick > 0) {
+        int64_t t0 = k_uptime_get();
+        bool armed = (sdv_fault_ctl.magic == SDV_FAULT_MAGIC);
+
+        /* Fault 1: memory leak (accumulating). */
+        if (armed && sdv_fault_ctl.leak_bytes_per_tick > 0) {
             void *p = k_heap_alloc(&leak_heap,
-                                   sdv_fault_ctl.leak_bytes_per_tick,
-                                   K_NO_WAIT);
+                                   sdv_fault_ctl.leak_bytes_per_tick, K_NO_WAIT);
             if (p) {
                 total_leaked += sdv_fault_ctl.leak_bytes_per_tick;
             }
         }
 
+        /* Fault 2: timing / deadline-miss (ramping extra work per tick). */
+        if (armed && sdv_fault_ctl.busy_spin_us > 0) {
+            busy_accum_us += sdv_fault_ctl.busy_spin_us;
+            if (busy_accum_us > BUSY_CAP_US) {
+                busy_accum_us = BUSY_CAP_US;
+            }
+            k_busy_wait(busy_accum_us);
+        } else {
+            busy_accum_us = 0;   /* clearing the fault heals: latency drops */
+        }
+
         struct sys_memory_stats stats;
         sys_heap_runtime_stats_get(&leak_heap.heap, &stats);
-
         send_telem(SIG_HEAP_FREE, (uint32_t)stats.free_bytes);
         send_telem(SIG_HEAP_USED, (uint32_t)stats.allocated_bytes);
+
+        /* calculate working delta */
+        uint32_t work_ms = (uint32_t)(k_uptime_get() - t0);
+        printf("Delta work_ms = %d",work_ms);
+        send_telem(SIG_LOOP_LATENCY, work_ms);
 
         k_msleep(TICK_MS);
     }
