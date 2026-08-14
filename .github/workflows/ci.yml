@@ -82,3 +82,13 @@ jobs:
           name: renode-logs
           retention-days: 7
           path: renode-artifacts
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.13' }
+      - run: pip install pandas scikit-learn ruff pytest
+      - run: ruff check ml sim
+      - run: pytest tests/python -q
