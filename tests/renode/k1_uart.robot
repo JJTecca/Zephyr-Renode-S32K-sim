@@ -29,8 +29,8 @@ CAN Is Unavailable But Boot Survives
     [Documentation]    Negative path: CAN can't init in sim -> must degrade, not abort.
     Boot K1
     Start Emulation
-    Wait For Line On Uart     K1,can,unavailable_sim
     Wait For Line On Uart     K1,link,ok
+    Wait For Line On Uart     K1,can,unavailable_sim
     Wait For Line On Uart     TELEM,
 
 Healthy Node Does Not Leak

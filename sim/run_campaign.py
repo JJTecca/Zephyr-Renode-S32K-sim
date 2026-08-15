@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, csv, re
+
+import argparse
+import csv
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
