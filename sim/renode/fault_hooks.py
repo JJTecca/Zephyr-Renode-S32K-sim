@@ -1,4 +1,3 @@
-# ruff: noqa: F821  -- `monitor` is a Renode-injected global, undefined at lint time.
 def _bus_addr():
     bus = monitor.Machine.SystemBus
     return bus, bus.GetSymbolAddress("sdv_fault_ctl")

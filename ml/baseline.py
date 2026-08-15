@@ -25,6 +25,7 @@ def fpr_per_hour(y_true, scores, thr):
 
 
 def run_isoforest(split):
+    # "42" =use pseudo-random number generators
     clf = IsolationForest(n_estimators=200, contamination="auto", random_state=42)
     clf.fit(split.Xtr_normal)
     return -clf.score_samples(split.Xtr_normal), -clf.score_samples(split.Xte)
@@ -72,6 +73,7 @@ def report(name, split, s_tr, s_te):
 
 def main():
     ap = argparse.ArgumentParser()
+    # Pick the dataset from the previous py script and make sure it's the same name
     ap.add_argument("--glob", default="datasets/memory_leak_*.csv")
     ap.add_argument("--epochs", type=int, default=300)
     a = ap.parse_args()
