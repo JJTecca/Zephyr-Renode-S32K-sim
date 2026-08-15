@@ -87,9 +87,11 @@ def main():
 
     # Create logs dataset directory at paste the output there found in the UART
     (REPO / "datasets").mkdir(exist_ok=True)
-    out_csv = str(REPO / "datasets" / f"memory_leak_leak{cfg['leak_bytes_per_tick']}_seed{args.seed}.csv")
+    # Find a proper file name for the csv i.e "memory_leak_128_seed42.csv"
+    out_csv = str(REPO / "datasets" / f"memory_leak_{cfg['leak_bytes_per_tick']}_seed{args.seed}.csv")
 
     n = label(rows, inject_ms, rate_per_s, out_csv)
+    # we have the option to auto detect or to give args for ms interval
     where = "given" if args.inject_ms is not None else "auto-detected"
     print(f"[label] {n} rows | inject_ms={inject_ms} ({where}) -> {out_csv}")
 
