@@ -1,20 +1,22 @@
 from __future__ import annotations
+
 import argparse
+
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import roc_auc_score
 
-from dataset import load_all, ts_split, FEATURES  # same directory
+from dataset import FEATURES, Split, load_all, ts_split  # same directory
 
-TICK_HZ = 10.0  # telemetry cadence -> convert FP count to per-hour
+TICK_HZ: float = 10.0  # telemetry cadence -> convert FP count to per-hour
 
 
-def threshold_from_train(train_scores, q=0.99):
+def threshold_from_train(train_scores: np.ndarray, q: float = 0.99) -> float:
     """Operating point: the q-quantile of TRAIN-normal scores."""
     return float(np.quantile(train_scores, q))
 
 
-def fpr_per_hour(y_true, scores, thr):
+def fpr_per_hour(y_true: np.ndarray, scores: np.ndarray, thr: float) -> float:
     """False positives per hour of NORMAL operation."""
     normal = scores[y_true == 0]
     if len(normal) == 0:
@@ -24,14 +26,16 @@ def fpr_per_hour(y_true, scores, thr):
     return fp / hours if hours > 0 else float("nan")
 
 
-def run_isoforest(split):
-    # "42" =use pseudo-random number generators
+def run_isoforest(split: Split) -> tuple[np.ndarray, np.ndarray]:
+    """Fit Isolation Forest on train-normal; return (train, test) anomaly scores."""
     clf = IsolationForest(n_estimators=200, contamination="auto", random_state=42)
     clf.fit(split.Xtr_normal)
     return -clf.score_samples(split.Xtr_normal), -clf.score_samples(split.Xte)
 
 
-def run_autoencoder(split, epochs=300, noise=0.1, seed=42):
+def run_autoencoder(split: Split, epochs: int = 300, noise: float = 0.1,
+                    seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
+    """Train a small denoising autoencoder on train-normal; score = recon error."""
     import torch
     import torch.nn as nn
     torch.manual_seed(seed)
@@ -60,9 +64,10 @@ def run_autoencoder(split, epochs=300, noise=0.1, seed=42):
     return s_tr, s_te
 
 
-def report(name, split, s_tr, s_te):
+def report(name: str, split: Split, s_tr: np.ndarray, s_te: np.ndarray) -> None:
+    """Print ROC-AUC + FP/hour for one detector's scores."""
     if split.yte.sum() in (0, len(split.yte)):
-        print(f"[{name}] test has one class only — ROC undefined "
+        print(f"[{name}] test has one class only -- ROC undefined "
               f"(add more/varied episodes)")
         return
     auc = roc_auc_score(split.yte, s_te)
@@ -71,9 +76,8 @@ def report(name, split, s_tr, s_te):
     print(f"[{name:11s}] ROC-AUC={auc:.3f}  FP/hour={fph:.2f}")
 
 
-def main():
+def main() -> None:
     ap = argparse.ArgumentParser()
-    # Pick the dataset from the previous py script and make sure it's the same name
     ap.add_argument("--glob", default="datasets/memory_leak_*.csv")
     ap.add_argument("--epochs", type=int, default=300)
     a = ap.parse_args()
