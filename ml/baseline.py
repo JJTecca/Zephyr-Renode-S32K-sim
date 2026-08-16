@@ -30,6 +30,11 @@ def run_isoforest(split: Split) -> tuple[np.ndarray, np.ndarray]:
     """Fit Isolation Forest on train-normal; return (train, test) anomaly scores."""
     clf = IsolationForest(n_estimators=200, contamination="auto", random_state=42)
     clf.fit(split.Xtr_normal)
+    # scores it returns (higher = more anomalous). On perfectly-flat normal data
+    # the forest has nothing to split on, so scores collapse near a constant ~0.5
+    # and it can't tell normal from faulty (ROC-AUC ~0.5 -> needs realistic noise):
+    #   s_tr = [0.50, 0.50, 0.49, ...]      (train-normal)
+    #   s_te = [0.50, 0.51, 0.50, 0.50]     (test: normal AND faulty look alike)
     return -clf.score_samples(split.Xtr_normal), -clf.score_samples(split.Xte)
 
 
@@ -61,6 +66,11 @@ def run_autoencoder(split: Split, epochs: int = 300, noise: float = 0.1,
     with torch.no_grad():
         s_tr = ((ae(Xtr) - Xtr) ** 2).mean(1).numpy()    # reconstruction error
         s_te = ((ae(Xte) - Xte) ** 2).mean(1).numpy()
+    # scores = how badly the AE (trained ONLY on normal) rebuilds each row.
+    # normal rows rebuild near-perfectly (~0), faulty rows it has never seen blow
+    # up -> clean separation, ROC-AUC ~1.0:
+    #   s_tr = [0.001, 0.000, 0.002, ...]        (normal: tiny error)
+    #   s_te = [0.001, 0.002, 9.1e6, 8.7e6]      (faulty tail: huge error)
     return s_tr, s_te
 
 
@@ -70,6 +80,12 @@ def report(name: str, split: Split, s_tr: np.ndarray, s_te: np.ndarray) -> None:
         print(f"[{name}] test has one class only -- ROC undefined "
               f"(add more/varied episodes)")
         return
+    # thr = the 0.99 quantile of TRAIN-normal scores = the alarm line. Anything in
+    # the test set scoring above it is flagged faulty:
+    #   thr = 0.002
+    #   s_te = [0.001, 0.002, 9.1e6, 8.7e6]  ->  flagged = [ .    .    ALARM  ALARM ]
+    # ROC-AUC = separability over all thresholds (1.0 perfect); FP/hour = false
+    # alarms per hour of normal running.
     auc = roc_auc_score(split.yte, s_te)
     thr = threshold_from_train(s_tr, q=0.99)
     fph = fpr_per_hour(split.yte, s_te, thr)

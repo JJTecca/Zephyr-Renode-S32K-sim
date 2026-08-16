@@ -14,29 +14,45 @@ def load_episode(csv: str, episode_id: int = 0) -> pd.DataFrame:
     """Read one labelled CSV (long format) -> tidy DataFrame."""
     df = pd.read_csv(csv)
     df["episode"] = episode_id
+    # what df looks like now (LONG: one row per signal-sample, tagged episode):
+    #   timestamp  signal        value  label   true_ttf  episode
+    #   200        heap_free     8112   normal            0
+    #   201        heap_used     0      normal            0
+    #   200        loop_latency  0      normal            0
+    #   400        heap_free     8000   faulty  6.25       0
+    #   401        heap_used     112    faulty            0
     return df
 
 
 def pivot_wide(df: pd.DataFrame) -> pd.DataFrame:
-    # Output format
-    # timestamp, signal,       value
-    # 200,       heap_free,    8112
-    # 200,       loop_latency, 0
-    # we basically have many records for 1 timestamp and reset_index() used 
+    df = df.copy()
+    # signals in one tick are logged ~1 ms apart (heap_free@200, heap_used@201);
+    # snap every timestamp to the nearest 100 ms tick so they land on the SAME row
+    # instead of pivoting into separate half-empty (NaN) rows.
+    df["timestamp"] = (df["timestamp"] / 100).round().astype(int) * 100
+    # long -> wide: each distinct signal becomes its own column, keyed by tick.
+    #   BEFORE (long):                    AFTER pivot (wide, one row per tick):
+    #   timestamp  signal      value      episode timestamp heap_free heap_used loop_latency
+    #   200        heap_free   8112       0       200       8112      0         0
+    #   200        heap_used   0          0       400       8000      112       60
+    #   200        loop_latency 0
     wide = df.pivot_table(index=["episode", "timestamp"], columns="signal",
                           values="value", aggfunc="first").reset_index()
     wide.columns.name = None
-    # episode  timestamp  signal        value  label    f
-    # 0        200        heap_free     8112   normal   False
-    # 0        200        loop_latency  0      normal   False
-    # 0        400        heap_free     8000   faulty   True
-    # 0        400        loop_latency  60     faulty   True
+    # collapse per-tick labels: a tick is faulty if ANY of its samples was faulty.
+    #   episode  timestamp  f
+    #   0        200        False
+    #   0        400        True
     lab = (df.assign(f=(df["label"] == "faulty"))
              .groupby(["episode", "timestamp"])["f"].max().reset_index())
     wide = wide.merge(lab, on=["episode", "timestamp"]).rename(columns={"f": "faulty"})
     for c in ("heap_free", "heap_used", "loop_latency"):
         if c not in wide.columns:      # a class may not emit every signal
             wide[c] = np.nan
+    # wide looks like now (one clean row per 100 ms tick):
+    #   episode  timestamp  heap_free  heap_used  loop_latency  faulty
+    #   0        200        8112       0          0             False
+    #   0        400        8000       112        60            True
     return wide.sort_values(["episode", "timestamp"]).reset_index(drop=True)
 
 
@@ -61,6 +77,12 @@ def add_features(wide: pd.DataFrame, window: int = 10, dt_s: float = 0.1) -> pd.
     out["loop_latency"] = out["loop_latency"].fillna(0.0)
     out[["heap_free_slope", "loop_latency_slope"]] = \
         out[["heap_free_slope", "loop_latency_slope"]].fillna(0.0)
+    # out looks like now (raw signals + their trailing slopes; slope goes NEGATIVE
+    # once the leak starts eating heap_free -> that is the early-warning feature):
+    #   timestamp  heap_free  heap_free_slope  loop_latency  loop_latency_slope  faulty
+    #   200        8112       0.0              0             0.0                 False
+    #   400        8000       -560.0           60            300.0               True
+    #   600        7872       -1200.0          60            0.0                 True
     return out
 
 
@@ -103,6 +125,11 @@ def ts_split(feat: pd.DataFrame, features: list[str] = FEATURES,
         tr_norm = normal.iloc[:cut]
         te = pd.concat([normal.iloc[cut:], faulty]).sort_values("timestamp")
 
+    # at this point the frame becomes plain numpy matrices (rows x 4 features):
+    #   Xtr (train-normal only)        yte (test labels)
+    #   [[8112,   0, 0,   0],          [0, 0, ... 1, 1]   (0=normal, 1=faulty)
+    #    [8100, -60, 0,   0], ...]     test rows carry BOTH classes
+    # each column is then standardized: z = (x - mu) / sd, mu/sd from train-normal.
     Xtr = tr_norm[features].to_numpy(float)
     mu, sd = Xtr.mean(0), Xtr.std(0)                 # fit on train-normal ONLY
     sd[sd < 1e-9] = 1.0                              # leave constant cols unscaled
