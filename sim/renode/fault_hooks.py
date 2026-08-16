@@ -1,5 +1,6 @@
 def _bus_addr():
-    bus = monitor.Machine.SystemBus
+    bus = monitor.Machine.SystemBus # type: ignore
+    #renode type of variable
     return bus, bus.GetSymbolAddress("sdv_fault_ctl")
 
 def mc_inject_memory_leak(machine_name, rate):
