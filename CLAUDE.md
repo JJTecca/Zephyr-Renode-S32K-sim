@@ -11,11 +11,24 @@ Re-read the yml; don't guess. Gates: pr-title-check — title `^\[(FEATURE|BUG|H
 TEST|CHORE)\]\s.+`, ≤40 chars. ci.yml — builds firmware + Renode robot test. Owner-authorised
 pushes to `main` bypass CI.
 
-## RULE 2 — the simulation roadmap is mandated reading (MUST)
-Before any roadmap / plan / "what's next" / scope work, READ
-`documents/SDV_Sim_Roadmap_September.pdf` — the authoritative simulation-only sprint plan (mid-Aug →
-30 Sep 2026; all 8 layers L0–L7; Sprints 0–6 with exit criteria). Follow its sprints and exit
-criteria; do not invent a parallel plan. Regenerate the PDF only when the owner asks.
+## RULE 2 — the roadmaps are mandated reading (MUST)
+Before any roadmap / plan / "what's next" / scope / feasibility work, READ **both tiers** — do not
+invent a parallel plan:
+- **FINAL authoritative scope (what MUST ship):** `documents/Plan_tematic_licenta_Maior.docx` — the
+  official ULBS diploma thematic plan (deliverables + graphics; deadline **20 Jun 2027**) — and
+  `documents/Cuprins_SDV.docx` — the frozen thesis chapter structure (Chaps I–VIII). Every task
+  must trace to a deliverable in these two. The thematic plan's 4 fault classes, 2 flagship
+  predictions, GNN, C-supervisor, data backbone + dashboard, and ≥30-incident metrics campaign are
+  the contract.
+- **NEAR-TERM execution cadence:** `documents/SDV_Sim_Roadmap_September.pdf` — the compressed
+  simulation-only sprint plan (mid-Aug → 30 Sep 2026; L0–L7; Sprints 0–6 with exit criteria). This
+  is *how* we drive toward the final scope; follow its sprints and exit criteria.
+- Where they conflict, the official thematic plan wins on *scope*, the Sept plan wins on *ordering*.
+  Known conflict: thematic plan lists CAN bus-off as a flagship prediction, but bus-off is NOT
+  simulable in Renode (decorative regs, ADR-012) → graduated to the MR-CANHUBK344 board; the sim's
+  second flagship is timing/deadline-miss. Flag this honestly, never silently drop a deliverable.
+Regenerate any PDF only when the owner asks. `documents/SDV_Dataset_Evolution.pdf` = the raw-UART →
+detector trace explainer (teaching aid).
 
 ## Context economy (owner request — don't waste the window)
 Reuse this file + prior findings; don't re-derive established facts each turn. Renode source is
