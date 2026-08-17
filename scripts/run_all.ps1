@@ -8,6 +8,7 @@ Write-Output "Clear
     i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/boot_topology.resc
     i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/fault_hooks.py
     inject_memory_leak k1_powertrain 128
+    inject_busy_spin k1_powertrain 5000
     Clear"
 
 python scripts/renode_open.py

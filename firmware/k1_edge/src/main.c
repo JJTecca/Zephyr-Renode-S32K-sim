@@ -125,7 +125,7 @@ int main(void)
 
         /* calculate working delta */
         uint32_t work_ms = (uint32_t)(k_uptime_get() - t0);
-        printf("Delta work_ms = %d",work_ms);
+        printk("Delta work_ms = %u \n",work_ms);
         send_telem(SIG_LOOP_LATENCY, work_ms);
 
         k_msleep(TICK_MS);
