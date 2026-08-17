@@ -12,13 +12,9 @@ SIG = {1: "heap_free", 2: "heap_used", 5: "loop_latency"}
 # Per fault class
 FAULTS = {
     "memory_leak":   dict(config="sim/configs/memory_leak.yaml",
-                          onset_sig=2, onset_thresh=0, ttf_sig=1,
-                          strength="leak_bytes_per_tick"),
-    # loop_latency jitters 0/1 while healthy, so onset must be ABOVE that floor
-    # (the injected busy_spin ramp starts at ~5 ms and climbs).
+                          onset_sig=2, ttf_sig=1, strength="leak_bytes_per_tick"),
     "deadline_miss": dict(config="sim/configs/timing_deadline_miss.yaml",
-                          onset_sig=5, onset_thresh=2, ttf_sig=None,
-                          strength="busy_spin_us"),
+                          onset_sig=5, ttf_sig=None, strength="busy_spin_us"),
 }
 
 
@@ -53,13 +49,12 @@ def parse_rows(uart_log):
     return out
 
 
-def find_inject_ms(rows, explicit, onset_sig, onset_thresh=0):
-    """Inject moment: given, else the first sample of the onset signal that rises
-    ABOVE onset_thresh (jitter floor)."""
+def find_inject_ms(rows, explicit, onset_sig):
+    """Inject moment: given, else the first non-zero sample of the onset signal."""
     if explicit is not None:
         return explicit
     for (t, sig, val) in rows:
-        if sig == onset_sig and val > onset_thresh:
+        if sig == onset_sig and val > 0:
             return t
     return None
 
@@ -97,8 +92,7 @@ def main():
     if not rows:
         raise SystemExit(f"no TELEM lines in {args.log}")
 
-    inject_ms = find_inject_ms(rows, args.inject_ms, spec["onset_sig"],
-                               spec.get("onset_thresh", 0))
+    inject_ms = find_inject_ms(rows, args.inject_ms, spec["onset_sig"])
 
     # Create logs dataset directory at paste the output there found in the UART
     (REPO / "datasets").mkdir(exist_ok=True)
