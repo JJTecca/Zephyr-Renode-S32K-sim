@@ -1,5 +1,6 @@
-# timing_deadline_miss.yaml — EARLY-WARNING (fallback flagship): rising
-# loop-latency variance flags risk, no RUL claimed. Will define: signal
-# loop_latency_us on k1_chassis; injection = inject_busy_spin ramping extra
-# work per tick; ground truth = first tick where latency exceeds the 100 ms
-# period (deterministic in virtual time); recovery = restart/rebalance.
+node:            k1
+signal:          loop_latency
+baseline_s:      3           # clean window before we inject
+busy_spin_us:    20000       # extra work added per tick (ramps, capped 500 ms)
+tick_hz:         10          # firmware sends every 100 ms
+run_s:           12          # total episode length

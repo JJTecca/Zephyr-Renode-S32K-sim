@@ -26,11 +26,9 @@ def load_episode(csv: str, episode_id: int = 0) -> pd.DataFrame:
 
 def pivot_wide(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    # signals in one tick are logged ~1 ms apart (heap_free@200, heap_used@201);
     # snap every timestamp to the nearest 100 ms tick so they land on the SAME row
     # instead of pivoting into separate half-empty (NaN) rows.
     df["timestamp"] = (df["timestamp"] / 100).round().astype(int) * 100
-    # long -> wide: each distinct signal becomes its own column, keyed by tick.
     #   BEFORE (long):                    AFTER pivot (wide, one row per tick):
     #   timestamp  signal      value      episode timestamp heap_free heap_used loop_latency
     #   200        heap_free   8112       0       200       8112      0         0
@@ -39,7 +37,6 @@ def pivot_wide(df: pd.DataFrame) -> pd.DataFrame:
     wide = df.pivot_table(index=["episode", "timestamp"], columns="signal",
                           values="value", aggfunc="first").reset_index()
     wide.columns.name = None
-    # collapse per-tick labels: a tick is faulty if ANY of its samples was faulty.
     #   episode  timestamp  f
     #   0        200        False
     #   0        400        True
@@ -77,8 +74,6 @@ def add_features(wide: pd.DataFrame, window: int = 10, dt_s: float = 0.1) -> pd.
     out["loop_latency"] = out["loop_latency"].fillna(0.0)
     out[["heap_free_slope", "loop_latency_slope"]] = \
         out[["heap_free_slope", "loop_latency_slope"]].fillna(0.0)
-    # out looks like now (raw signals + their trailing slopes; slope goes NEGATIVE
-    # once the leak starts eating heap_free -> that is the early-warning feature):
     #   timestamp  heap_free  heap_free_slope  loop_latency  loop_latency_slope  faulty
     #   200        8112       0.0              0             0.0                 False
     #   400        8000       -560.0           60            300.0               True
