@@ -20,7 +20,7 @@ if ($closed -ne "YES") {
 }
 
 Write-Output "Running campaign & generating .csv logs"
-python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log
+python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log --fault deadline_miss
 
 Start-Sleep -Seconds 2
 
