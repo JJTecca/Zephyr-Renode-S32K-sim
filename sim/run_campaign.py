@@ -12,9 +12,11 @@ SIG = {1: "heap_free", 2: "heap_used", 5: "loop_latency"}
 # Per fault class
 FAULTS = {
     "memory_leak":   dict(config="sim/configs/memory_leak.yaml",
-                          onset_sig=2, ttf_sig=1, strength="leak_bytes_per_tick"),
+                          onset_sig=2, onset_thresh=0,   # heap_used is EXACTLY 0 when healthy
+                          ttf_sig=1, strength="leak_bytes_per_tick"),
     "deadline_miss": dict(config="sim/configs/timing_deadline_miss.yaml",
-                          onset_sig=5, ttf_sig=None, strength="busy_spin_us"),
+                          onset_sig=5, onset_thresh=1,   # loop_latency jitters 0<->1 when healthy
+                          ttf_sig=None, strength="busy_spin_us"),
 }
 
 
@@ -54,7 +56,9 @@ def find_inject_ms(rows, explicit, onset_sig):
     if explicit is not None:
         return explicit
     for (t, sig, val) in rows:
-        if sig == onset_sig and val > 0:
+        # we can compare with 2 because the 0->1 transition could happen randomly because of clock
+        # 2 or higher is already faulty
+        if sig == onset_sig and val > 2:
             return t
     return None
 
@@ -85,6 +89,7 @@ def main():
     args = ap.parse_args()
 
     spec = FAULTS[args.fault]
+    print(spec)
     cfg = read_config(args.config or str(REPO / spec["config"]))
     rate_per_s = cfg["leak_bytes_per_tick"] * cfg["tick_hz"]   # only used by leak
 

@@ -3,7 +3,7 @@ def _bus_addr():
     #renode type of variable
     return bus, bus.GetSymbolAddress("sdv_fault_ctl")
 
-def mc_nject_memory_leak(machine_name, rate):
+def mc_inject_memory_leak(machine_name, rate):
     bus, a = _bus_addr()
     bus.WriteDoubleWord(a,     0xFA17C0DE)   # magic -> armed
     bus.WriteDoubleWord(a + 4, int(rate))    # leak_bytes_per_tick
