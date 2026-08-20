@@ -43,6 +43,8 @@ def pivot_wide(df: pd.DataFrame) -> pd.DataFrame:
     lab = (df.assign(f=(df["label"] == "faulty"))
              .groupby(["episode", "timestamp"])["f"].max().reset_index())
     wide = wide.merge(lab, on=["episode", "timestamp"]).rename(columns={"f": "faulty"})
+    ttf = df.groupby(["episode", "timestamp"])["true_ttf"].max().reset_index()
+    wide = wide.merge(ttf, on=["episode", "timestamp"])
     for c in ("heap_free", "heap_used", "loop_latency"):
         if c not in wide.columns:      # a class may not emit every signal
             wide[c] = np.nan
