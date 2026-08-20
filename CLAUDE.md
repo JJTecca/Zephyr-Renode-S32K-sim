@@ -3,8 +3,14 @@
 ## RULE 0 — deliver code in chat, don't push it (owner lifts per-request, in chat)
 Default: output complete files in chat with their target path; the owner builds/runs them. No
 commits/PRs of source unless the owner authorises *that specific push* in chat (common this
-session). Never add Claude as commit author/co-author. Docs/vault pushes are fine when the owner
-names them; this CLAUDE.md may be edited when the owner asks.
+session). Docs/vault pushes are fine when the owner names them; this CLAUDE.md may be edited when
+the owner asks.
+Authorship + git hygiene (HARD): Claude is NEVER the author, committer, or co-author — every
+commit is authored AND committed by the owner (`CristiM <maiorcristian123@gmail.com>`; set
+`git config user.name/user.email` to this before committing). Claude never creates branches (local
+or remote) and never opens PRs. The ONLY push Claude makes is a force-push straight to `main`, and
+ONLY when the owner asks for it in that request — no feature branches, no side branches, no
+branch-satisfying pushes for stop-hooks.
 
 ## RULE 1 — before an owner-asked PR, satisfy every .github/workflows/*.yml
 Re-read the yml; don't guess. Gates: pr-title-check — title `^\[(FEATURE|BUG|HOTFIX|DOCS|REFACTOR|
