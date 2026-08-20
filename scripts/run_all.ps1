@@ -19,13 +19,20 @@ if ($closed -ne "YES") {
     throw "Stopped: close Renode before parsing k1_telem.log."
 }
 
+# could change to deadline_miss
+$Fault = "memory_leak"
 Write-Output "Running campaign & generating .csv logs"
-python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log --fault deadline_miss
+python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log --fault $Fault
 
 Start-Sleep -Seconds 2
 
 Write-Output "Running IsoForest alg & generating .csv file"
 python ml\dataset.py --glob "datasets/*.csv"
 python ml\baseline.py --glob "datasets/memory_leak_*.csv"
+
+if($Fault -eq "memory_leak") {
+    Write-Output "Predicting how much time left for K1 to run OOM and crash"
+    python ml\predictor.py --glob "datasets/memory_leak_*.csv"
+}
 
 Pause

@@ -13,6 +13,3 @@ __pycache__/
 # Renode
 *.log
 logs/
-
-# Campaign outputs (DVC-tracked later; git holds pointers only)
-datasets/*.csv

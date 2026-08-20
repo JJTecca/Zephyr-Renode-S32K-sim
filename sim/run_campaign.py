@@ -86,10 +86,12 @@ def main():
     ap.add_argument("--inject-ms", type=int, default=None,
                     help="uptime(ms) the fault was injected; omit to auto-detect")
     ap.add_argument("--seed", type=int, default=42, help="tag only (filename)")
+    ap.add_argument("--rate", type=int, default=None, help="different leak rates AS TESTING")
     args = ap.parse_args()
 
     spec = FAULTS[args.fault]
-    print(spec)
+    if args.rate is not None:
+        cfg["leak_bytes_per_tick"] = args.rate
     cfg = read_config(args.config or str(REPO / spec["config"]))
     rate_per_s = cfg["leak_bytes_per_tick"] * cfg["tick_hz"]   # only used by leak
 
