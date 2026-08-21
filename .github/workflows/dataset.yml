@@ -5,17 +5,9 @@ on:
     branches: [main]
     paths:
       - 'firmware/**'
-      - 'tests/renode/**'
       - 'sim/**'
       - 'ml/**'
-
-  pull_request:
-    branches: [main]
-    paths:
-      - 'firmware/**'
       - 'tests/renode/**'
-      - 'sim/**'
-      - 'ml/**'
 
 permissions:
   contents: write        # needed to commit the regenerated CSVs
@@ -105,5 +97,5 @@ jobs:
             echo "no dataset changes"; exit 0
           fi
           # [skip ci] + path filter (datasets/** not watched) both prevent a re-trigger loop
-          git commit -m "[CHORE] Regenerate datasets from firmware/robot change [skip ci]"
+          git commit -m "[CHORE] Overwrite csv files"
           git push
