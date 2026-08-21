@@ -20,9 +20,10 @@ if ($closed -ne "YES") {
 }
 
 # could change to deadline_miss
+# dont forget to change leak rates, manually adjust 64/128/256
 $Fault = "memory_leak"
 Write-Output "Running campaign & generating .csv logs"
-python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log --fault $Fault
+python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log --fault $Fault --rate 256
 
 Start-Sleep -Seconds 2
 

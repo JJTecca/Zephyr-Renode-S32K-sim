@@ -90,9 +90,9 @@ def main():
     args = ap.parse_args()
 
     spec = FAULTS[args.fault]
+    cfg = read_config(args.config or str(REPO / spec["config"]))
     if args.rate is not None:
         cfg["leak_bytes_per_tick"] = args.rate
-    cfg = read_config(args.config or str(REPO / spec["config"]))
     rate_per_s = cfg["leak_bytes_per_tick"] * cfg["tick_hz"]   # only used by leak
 
     rows = parse_rows(args.log)
