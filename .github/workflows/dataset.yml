@@ -6,6 +6,7 @@ on:
     paths:
       - 'firmware/**'
       - 'tests/renode/**'
+      - 'sim/**'
       - 'ml/**'
 
 permissions:
