@@ -1,13 +1,8 @@
 name: Dataset
 
+# Manual run trigger
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'firmware/**'
-      - 'sim/**'
-      - 'ml/**'
-      - 'tests/renode/**'
+  workflow_dispatch:
 
 permissions:
   contents: write        # needed to commit the regenerated CSVs
@@ -73,7 +68,7 @@ jobs:
             if [ "$cls" = memory_leak ]; then
               export CAMPAIGN_INJECT="inject_memory_leak k1_powertrain $rate"
             else
-              export CAMPAIGN_INJECT="inject_busy_spin k1_powertrain 20000"
+              export CAMPAIGN_INJECT="inject_busy_spin k1_powertrain 5000"
             fi
             renode-test tests/renode/k1_k3_uart.robot || true
             if ! grep -q '^TELEM,' k1_telem.log 2>/dev/null; then
