@@ -1,0 +1,101 @@
+name: Dataset
+
+# Regenerate the labelled datasets whenever the firmware or the Renode campaign
+# test changes. No manual trigger; CSVs are committed straight back into /datasets.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'firmware/**'
+      - 'tests/renode/**'
+
+permissions:
+  contents: write        # needed to commit the regenerated CSVs
+
+concurrency:
+  group: dataset-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build firmware (K1 + K3)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: Zephyr-Renode-S32K-sim
+      - uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: Zephyr-Renode-S32K-sim
+          toolchains: arm-zephyr-eabi
+      - run: west build -b mr_canhubk3/s32k344 Zephyr-Renode-S32K-sim/firmware/k1_edge -d build/k1_powertrain
+      - run: west build -b mr_canhubk3/s32k344 Zephyr-Renode-S32K-sim/firmware/k3_hub  -d build/k3_hub
+      - uses: actions/upload-artifact@v4
+        with:
+          name: elfs
+          retention-days: 1
+          path: |
+            build/k1_powertrain/zephyr/zephyr.elf
+            build/k3_hub/zephyr/zephyr.elf
+
+  campaign:
+    name: Generate + commit datasets
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      RATES: "64 128 256"
+      SEEDS: "3"
+      RENODE_VER: "1.16.0"        # <-- match the Renode you run locally (verify tag/filename)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: elfs
+          path: build
+
+      - name: Install Renode + robot deps
+        run: |
+          wget -q https://github.com/renode/renode/releases/download/v${RENODE_VER}/renode-${RENODE_VER}.linux-portable.tar.gz
+          mkdir -p "$HOME/renode"
+          tar xzf renode-*.linux-portable.tar.gz -C "$HOME/renode" --strip-components=1
+          echo "$HOME/renode" >> "$GITHUB_PATH"
+          pip install --quiet pandas
+          pip install --quiet -r "$HOME/renode/tests/requirements.txt"
+
+      - name: Generate CSVs (leak rates x seeds + deadline_miss)
+        run: |
+          gen() {   # class rate seed
+            cls=$1; rate=$2; seed=$3
+            rm -f k1_telem.log
+            export CAMPAIGN_LOG="$PWD/k1_telem.log"
+            export CAMPAIGN_ONSET=$((1 + 2 * (seed - 1)))
+            export CAMPAIGN_DRAIN=12
+            if [ "$cls" = memory_leak ]; then
+              export CAMPAIGN_INJECT="inject_memory_leak k1_powertrain $rate"
+            else
+              export CAMPAIGN_INJECT="inject_busy_spin k1_powertrain 20000"
+            fi
+            renode-test tests/renode/k1_k3_uart.robot || true
+            if ! grep -q '^TELEM,' k1_telem.log 2>/dev/null; then
+              echo "::warning::no TELEM captured for $cls/$rate/$seed"; return
+            fi
+            if [ "$cls" = memory_leak ]; then
+              python sim/run_campaign.py --log k1_telem.log --fault "$cls" --rate "$rate" --seed "$seed"
+            else
+              python sim/run_campaign.py --log k1_telem.log --fault "$cls" --seed "$seed"
+            fi
+          }
+          for r in $RATES; do for s in $(seq 1 "$SEEDS"); do gen memory_leak "$r" "$s"; done; done
+          for s in $(seq 1 "$SEEDS"); do gen deadline_miss 0 "$s"; done
+
+      - name: Commit regenerated datasets
+        run: |
+          git config user.name  "CristiM"
+          git config user.email "maiorcristian123@gmail.com"
+          git add -f datasets/*.csv
+          if git diff --cached --quiet; then
+            echo "no dataset changes"; exit 0
+          fi
+          # [skip ci] + path filter (datasets/** not watched) both prevent a re-trigger loop
+          git commit -m "[CHORE] Regenerate datasets from firmware/robot change [skip ci]"
+          git push
