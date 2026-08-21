@@ -11,7 +11,8 @@ import pandas as pd
 def ramp_frame(feat: pd.DataFrame) -> pd.DataFrame:
     copy_feat = feat.copy()
     # we are cutting the big table into few columns
-    mask = (copy_feat["faulty"]) & (copy_feat["true_ttf"] > 0.1) # keeping negative faulty elements
+    mask = (copy_feat["faulty"]) & (copy_feat["heap_free_slope"] < 0) & (copy_feat["true_ttf"] > 0.1)
+    # keeping negative faulty elements
     ramp = copy_feat[mask]
     return ramp[["episode", "timestamp", "heap_free", "heap_free_slope", "true_ttf"]]
 
@@ -73,6 +74,9 @@ def plot_predictions(yte, analytic_hat, linreg_hat) -> None:
     ax.legend()
     ax.set_aspect("equal")
     plt.tight_layout()
+    # see the 128 run, it's way above without setting limits
+    ax.set_xlim(0, float(yte.max()) * 1.1)
+    ax.set_ylim(0, float(yte.max()) * 1.1)
     plt.show()
 
 def main() -> None:
