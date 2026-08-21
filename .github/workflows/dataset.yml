@@ -1,12 +1,12 @@
 name: Dataset
 
-# Regenerate the labelled datasets whenever the firmware or the Renode campaign
-# test changes. No manual trigger; CSVs are committed straight back into /datasets.
 on:
   push:
     branches: [main]
     paths:
       - 'firmware/**'
+      - 'sim/**'
+      - 'ml/**'
       - 'tests/renode/**'
 
 permissions:
@@ -45,7 +45,7 @@ jobs:
     env:
       RATES: "64 128 256"
       SEEDS: "3"
-      RENODE_VER: "1.16.0"        # <-- match the Renode you run locally (verify tag/filename)
+      RENODE_VER: "1.16.0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -97,5 +97,5 @@ jobs:
             echo "no dataset changes"; exit 0
           fi
           # [skip ci] + path filter (datasets/** not watched) both prevent a re-trigger loop
-          git commit -m "[CHORE] Regenerate datasets from firmware/robot change [skip ci]"
+          git commit -m "[CHORE] Overwrite csv files"
           git push
