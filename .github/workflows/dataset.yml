@@ -9,6 +9,14 @@ on:
       - 'sim/**'
       - 'ml/**'
 
+  pull_request:
+    branches: [main]
+    paths:
+      - 'firmware/**'
+      - 'tests/renode/**'
+      - 'sim/**'
+      - 'ml/**'
+
 permissions:
   contents: write        # needed to commit the regenerated CSVs
 
