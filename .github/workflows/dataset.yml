@@ -1,13 +1,12 @@
 name: Dataset
 
-# Regenerate the labelled datasets whenever the firmware or the Renode campaign
-# test changes. No manual trigger; CSVs are committed straight back into /datasets.
 on:
   push:
     branches: [main]
     paths:
       - 'firmware/**'
       - 'tests/renode/**'
+      - 'ml/**'
 
 permissions:
   contents: write        # needed to commit the regenerated CSVs
@@ -45,7 +44,7 @@ jobs:
     env:
       RATES: "64 128 256"
       SEEDS: "3"
-      RENODE_VER: "1.16.0"        # <-- match the Renode you run locally (verify tag/filename)
+      RENODE_VER: "1.16.0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
