@@ -24,28 +24,22 @@ Every column has exactly one of three origins. Know which, and the whole pipelin
 
 ### The three formulas
 
-**1 · Measured latency** is a stopwatch, not a computation. A healthy loop does almost nothing → `work_ms ≈ 0–1`. The deadline fault calls `k_busy_wait()` for a ramping number of microseconds, so the same stopwatch reads higher and higher.
+**1 · Measured latency**
 
-**2 · Slope** (both `_slope` columns) — the rate a signal is moving, in units/second:
-
+**2 · Slope**
 ```
 slope = series.diff().rolling(window).mean() / dt_s        # dt_s = 0.1 s
 ```
-
-Example: `loop_latency` steps `0 → 6` in one 0.1 s tick → slope ≈ `6 / 0.1 = +60/s`. A single value says little; its *slope* is what actually flags a fault.
-
-**3 · True time-to-failure** — the analytical ground truth, memory leak only:
+**3 · True time-to-failure** 
 
 ```
 leak_rate = leak_bytes_per_tick × tick_hz                  # e.g. 128 × 10 = 1280 B/s
 true_ttf  = heap_free / leak_rate                          # seconds until free heap hits 0
 ```
 
-Worked from real rows (rate 128): `7976 / 1280 = 6.231 s`, `88 / 1280 = 0.069 s`. It is *exact* because you **set** the leak rate and the firmware **reports** the bytes left — so the predictor's guess can be graded against a known-correct answer. Deadline-miss has no such analytical crash point, so its `true_ttf` is always blank.
+Worked from real rows (rate 128): `7976 / 1280 = 6.231 s`, `88 / 1280 = 0.069 s`.
 
 ### One more transform the detectors apply — standardization
-
-Before the detectors see the features, each is z-scored so no single column dominates by scale:
 
 ```
 z = (x − μ) / σ            # μ, σ computed on TRAIN-NORMAL rows only (never the test set)
