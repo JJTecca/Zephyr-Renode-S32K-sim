@@ -66,6 +66,7 @@ def find_inject_ms(rows, explicit, onset_sig):
 def label(rows, inject_ms, rate_per_s, ttf_sig, out_csv):
     with open(out_csv, "w", newline="") as f:
         w = csv.writer(f)
+        # true_ttf = heap_free ÷ leak_rate
         w.writerow(["timestamp", "signal", "value", "label", "true_ttf"])
         for (t, sig, val) in rows:
             faulty = inject_ms is not None and t >= inject_ms

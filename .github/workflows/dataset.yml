@@ -1,6 +1,6 @@
 name: Dataset
 
-# Manual run trigger
+# Manual run trigger (1+ hours)
 on:
   workflow_dispatch:
 
@@ -81,7 +81,7 @@ jobs:
             fi
           }
           for r in $RATES; do for s in $(seq 1 "$SEEDS"); do gen memory_leak "$r" "$s"; done; done
-          for s in $(seq 1 "$SEEDS"); do gen deadline_miss 0 "$s"; done
+          gen deadline_miss 0 1
 
       - name: Commit regenerated datasets
         run: |

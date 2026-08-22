@@ -38,16 +38,16 @@ detector trace explainer (teaching aid).
 
 ## Context economy (owner request — don't waste the window)
 Reuse this file + prior findings; don't re-derive established facts each turn. Renode source is
-already at `/workspace/renode/renode` — don't re-clone. Read vault notes only when a decision
-needs them. Biggest per-turn cost is the GitHub MCP instruction block (re-injects every turn) —
+already at `/workspace/renode/renode` — don't re-clone. Do NOT read the `vault/` (owner parked it as
+useless for now). Biggest per-turn cost is the GitHub MCP instruction block (re-injects every turn) —
 if PR/issue tools aren't needed, the owner can disconnect that MCP server.
 
 ## What this repo is
 Zephyr + Renode sim slice of the SDV Fault-Prediction & Self-Healing thesis (Maior
 Cristian-Alexandru, ULBS; demo Dec 2026). No board. K1 edge (sense-only) + K3 hub
 (gather→detect→veto→act) firmware, Renode bench, fault injection, dataset factory. `vault/` =
-Obsidian brain, source of truth (30-Architecture/ = authoritative ADRs; filenames use em-dashes +
-spaces → quote in shell). Offer a vault note when work yields a decision (`_templates/`).
+Obsidian notes — **NOT required reading** (owner parked it as useless for now); don't read or write
+it unless the owner explicitly asks. Decisions that matter live in this file + `documents/` roadmaps.
 
 ## Established this session — do NOT re-investigate
 - Firmware is real code now (K1/K3 `main.c`, schema, fault hooks) — not comment-only.

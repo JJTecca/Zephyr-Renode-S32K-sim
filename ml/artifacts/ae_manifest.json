@@ -1,0 +1,35 @@
+{
+  "glob": "datasets/memory_leak_*.csv",
+  "files": [
+    "datasets\\memory_leak_128_seed42.csv",
+    "datasets\\memory_leak_256_seed42.csv",
+    "datasets\\memory_leak_64_seed42.csv"
+  ],
+  "seed": 42,
+  "epochs": 300,
+  "noise": 0.1,
+  "features": [
+    "heap_free",
+    "heap_free_slope",
+    "loop_latency",
+    "loop_latency_slope"
+  ],
+  "scaler_mu": [
+    8112.0,
+    0.0,
+    0.20079787234042554,
+    0.0014775413711583924
+  ],
+  "scaler_sd": [
+    1.0,
+    1.0,
+    0.40059716275079105,
+    0.09773732350022409
+  ],
+  "threshold": 14.302451133728027,
+  "threshold_policy": "max(train-normal score) * 1.1",
+  "fp_per_hour_at_threshold": 0.0,
+  "train_normal_rows": 2256,
+  "test_faulty_rows": 105,
+  "calib_rows": 256
+}

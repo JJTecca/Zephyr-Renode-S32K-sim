@@ -104,9 +104,8 @@ class Split:
 
 def ts_split(feat: pd.DataFrame, features: list[str] = FEATURES,
              train_frac: float = 0.6) -> Split:
-    """Time-series split (NEVER random). Multiple episodes -> hold out the last
-    for test. Single episode -> train on the first train_frac of NORMAL; test on
-    the remaining normal + all faulty (so the test set holds BOTH classes)."""
+    # Single episode = train on the first train_frac of NORMAL; test on
+    # the remaining normal + all faulty (so the test set holds BOTH classes)."""
     eps = sorted(feat["episode"].unique())
     if len(eps) > 1:
         n_tr = max(1, int(round(len(eps) * train_frac)))
