@@ -36,6 +36,10 @@ invent a parallel plan:
 Regenerate any PDF only when the owner asks. `documents/SDV_Dataset_Evolution.pdf` = the raw-UART →
 detector trace explainer (teaching aid).
 
+## RULE 3 — code comments stay minimal (owner request)
+No comment block longer than 3 lines inside delivered code — it's redundant. Keep at most a 1–2 line
+comment where genuinely needed; put the real explanation in chat instead, not in the source.
+
 ## Context economy (owner request — don't waste the window)
 Reuse this file + prior findings; don't re-derive established facts each turn. Renode source is
 already at `/workspace/renode/renode` — don't re-clone. Read vault notes only when a decision
