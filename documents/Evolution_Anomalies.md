@@ -143,7 +143,7 @@ Xte, yte   = z-scored features + labels, both classes (test; y: 0=normal, 1=faul
 
 *(ROC-AUC. FP/hour ≈ 0 at the chosen threshold — see Fork C.)* **Output = a verdict:** "abnormal now?" Keeping both is the result: they fail on opposite data shapes, so the contrast is the finding.
 
----
+No ramp filter — keep every row and z-score it (detection needs *normal* rows to learn "normal"). Fit two rival detectors on train-normal, score how weird each test row is.
 
 ## Fork B — `predictor.py` · PREDICT (memory leak only)
 
@@ -242,7 +242,7 @@ The alarm line sits just above the single worst-behaving *normal* row, so no leg
 
 ---
 
-## The whole thing in one glance
+## Script map
 
 | stage | memory leak | deadline miss |
 |--|--|--|
