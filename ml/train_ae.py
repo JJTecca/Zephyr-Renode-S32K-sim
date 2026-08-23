@@ -13,7 +13,23 @@ from dataset import FEATURES, Split, load_all, ts_split  # same directory
 
 TICK_HZ: float = 10.0  # convert FP count to per-hour
 
+# Those numbers are extracted fromt he ae.pt artifact u=[8112, 0, 0.2, 0.001], o=[1, 1, 0.4, 0.14])
+# normal -> [ 0.000,     0.000,   −0.501,  −0.015]
+# faulty -> [−4216.0,  −1360.0,    1.995,  −0.015]
 
+# Normal row
+# input (4):     [0.000,  0.000, −0.501, −0.015]
+# Linear1+ReLU (8): [0.189, 0.466, 0, 0.310, 0.101, 0.878, 0, 0]
+# Linear2+ReLU (3): [0.000, 0.000, 0.000]
+# Linear3+ReLU (8): [0, 0.135, 0.719, 0, 0, 0.642, 0.190, 0]
+# Linear4  rebuild (4): [−0.000, −0.009, −0.408, −0.010]
+
+# Faulty row
+# input (4):     [−4216.0, −1360.0, 1.995, −0.015]
+# Linear1+ReLU (8): [0, 363.2, 0, 0, 0, 0, 1124.3, 335.5]
+# Linear2+ReLU (3): [573.5, 488.8, 0.000]
+# Linear3+ReLU (8): [0, 762.2, 0, 0, 437.0, 0, 278.4, 0]
+# Linear4  rebuild (4): [1.530, 33.522, −48.586, −696.057]
 def build_ae(d: int) -> nn.Sequential:
     return nn.Sequential(
         nn.Linear(d, 8), nn.ReLU(),
