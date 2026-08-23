@@ -1,8 +1,3 @@
-# run_all_ci.ps1 -- headless CI-style twin of run_all.ps1.
-# Instead of opening Renode and pasting by hand, it drives the k1_k3_uart.robot
-# test with renode-test, looping every leak rate x seed (+ deadline_miss), and
-# generates/overwrites the labelled CSVs in /datasets. No human in the loop.
-
 param(
   [int[]]$Rates       = @(64, 128, 256),
   [int]$Seeds         = 3,

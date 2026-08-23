@@ -15,6 +15,7 @@ manifest:
           - cmsis
           - cmsis_6
           - hal_nxp
+          - tflite-micro
 
   self:
     path: Zephyr-Renode-S32K-sim

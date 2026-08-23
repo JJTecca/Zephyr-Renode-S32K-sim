@@ -24,22 +24,28 @@ Every column has exactly one of three origins. Know which, and the whole pipelin
 
 ### The three formulas
 
-**1 · Measured latency**
+**1 · Measured latency** is a stopwatch, not a computation. A healthy loop does almost nothing → `work_ms ≈ 0–1`. The deadline fault calls `k_busy_wait()` for a ramping number of microseconds, so the same stopwatch reads higher and higher.
 
-**2 · Slope**
+**2 · Slope** (both `_slope` columns) — the rate a signal is moving, in units/second:
+
 ```
 slope = series.diff().rolling(window).mean() / dt_s        # dt_s = 0.1 s
 ```
-**3 · True time-to-failure** 
+
+Example: `loop_latency` steps `0 → 6` in one 0.1 s tick → slope ≈ `6 / 0.1 = +60/s`. A single value says little; its *slope* is what actually flags a fault.
+
+**3 · True time-to-failure** — the analytical ground truth, memory leak only:
 
 ```
 leak_rate = leak_bytes_per_tick × tick_hz                  # e.g. 128 × 10 = 1280 B/s
 true_ttf  = heap_free / leak_rate                          # seconds until free heap hits 0
 ```
 
-Worked from real rows (rate 128): `7976 / 1280 = 6.231 s`, `88 / 1280 = 0.069 s`.
+Worked from real rows (rate 128): `7976 / 1280 = 6.231 s`, `88 / 1280 = 0.069 s`. It is *exact* because you **set** the leak rate and the firmware **reports** the bytes left — so the predictor's guess can be graded against a known-correct answer. Deadline-miss has no such analytical crash point, so its `true_ttf` is always blank.
 
 ### One more transform the detectors apply — standardization
+
+Before the detectors see the features, each is z-scored so no single column dominates by scale:
 
 ```
 z = (x − μ) / σ            # μ, σ computed on TRAIN-NORMAL rows only (never the test set)
@@ -137,7 +143,7 @@ Xte, yte   = z-scored features + labels, both classes (test; y: 0=normal, 1=faul
 
 *(ROC-AUC. FP/hour ≈ 0 at the chosen threshold — see Fork C.)* **Output = a verdict:** "abnormal now?" Keeping both is the result: they fail on opposite data shapes, so the contrast is the finding.
 
----
+No ramp filter — keep every row and z-score it (detection needs *normal* rows to learn "normal"). Fit two rival detectors on train-normal, score how weird each test row is.
 
 ## Fork B — `predictor.py` · PREDICT (memory leak only)
 
@@ -171,7 +177,72 @@ Then `quantize.py` converts the saved float AE → **int8 LiteRT** for the M7, w
 
 ---
 
-## The whole thing in one glance
+## The math inside the detector — one row, worked end to end (both classes)
+
+This is the part the pipeline diagram hides: *how does the AE turn one row into an alarm?* Four steps, shown on a real **normal** row and a real **faulty** row of each class. The rows below are actual data run through the saved model.
+
+### Step 1 · z-score the row — `z = (x − μ) / σ`
+
+μ and σ are the mean and std of the **train-normal** rows only. `heap_free` and its slope are constant in normal running, so their σ ≈ 0 and the code leaves them unscaled (σ = 1).
+
+| class | row | raw `[heap_free, heap_slope, latency, lat_slope]` | z-scored |
+|--|--|--|--|
+| **leak** | normal | `[8112, 0, 0, 0]` | `[0, 0, −0.50, −0.02]` |
+| **leak** | faulty | `[3896, −1360, 1, 0]` | `[−4216, −1360, 1.99, −0.02]` |
+| **deadline** | normal | `[8112, 0, 0, 0]` | `[0, 0, −0.43, −0.23]` |
+| **deadline** | faulty | `[8112, 0, 55, 50]` | `[0, 0, 150.4, 197.5]` |
+
+Read the faulty rows: the leak's deviation lands as a **giant `heap_free` = −4216**; the deadline's lands as a **giant `latency` = 150.4** while its `heap_free` stays exactly 0. **Different columns blow up — same everything else.** Normal rows sit near 0 in both.
+
+### Step 2 · the network = weighted-sums + clip, shape `4 → 8 → 3 → 8 → 4`
+
+Each `nn.Linear(a,b)` is `b` weighted sums (a MAC per output): `out = W·x + b`. Each `ReLU` clips negatives to 0. The middle **3** is the bottleneck — the row is squeezed through 3 numbers, then rebuilt back to 4. Trained only on normal, it can rebuild normal and nothing else.
+
+### Step 3 · reconstruction error — `mean( (input − rebuild)² )`
+
+Feed the z-scored row in, get a rebuild out, average the squared differences across the 4 columns:
+
+| class | row | input z | rebuild | recon error |
+|--|--|--|--|--|
+| **leak** | normal | `[0, 0, −0.50, −0.02]` | `[0, −0.01, −0.41, −0.01]` | **0.0022** |
+| **leak** | faulty | `[−4216, −1360, 1.99, −0.02]` | `[1.5, 33.5, −48.6, −696]` | **5,054,123** |
+| **deadline** | normal | `[0, 0, −0.43, −0.23]` | `[0, −0.04, −0.30, −0.32]` | **0.0067** |
+| **deadline** | faulty | `[0, 0, 150.4, 197.5]` | `[−4.9, 6.3, 137.8, 159.3]` | **420.4** |
+
+The normal errors spelled out (per column, squared, then averaged):
+
+```
+leak normal    : (0)² + (−0.01)² + (0.09)² + (0.005)²        / 4 = 0.0022
+deadline normal: (−0.001)² + (−0.04)² + (0.14)² + (−0.08)²   / 4 = 0.0067
+```
+
+And *where* the faulty error comes from — it piles up in the fault's own columns:
+
+```
+leak faulty     heap_free (−4217)² ≈ 17.8M ┐
+                heap_slope(−1393)² ≈  1.9M ┘ dominate  → mean ≈ 5,054,123
+deadline faulty latency  (−12.6)² ≈ 158    ┐
+                lat_slope(−38.2)² ≈ 1460   ┘ dominate  → mean ≈ 420.4
+```
+
+The normal row rebuilds almost perfectly (error ~0.005); the faulty row can't be rebuilt (the net only knows how to output normal-scale numbers), so `(giant − small)²` explodes — **in exactly the columns the fault moved.**
+
+### Step 4 · the threshold — `max(train-normal error) × 1.10`
+
+Run Step 3 on **every** normal row, take the worst one, add a 10% margin. Anything above it is an alarm:
+
+| class | median normal err | worst normal err | threshold (×1.1) | faulty err | verdict |
+|--|--|--|--|--|--|
+| **leak** | 0.0022 | 13.00 | **14.30** | 5,054,123 | 🔴 ALARM |
+| **deadline** | 0.0067 | 0.80 | **0.875** | 420.4 | 🔴 ALARM |
+
+The alarm line sits just above the single worst-behaving *normal* row, so no legitimate normal ever trips it — yet the faulty error is orders of magnitude past it. That gap is why FP/hour is **0.00** and ROC-AUC is **1.000** for both.
+
+**The one idea:** the AE is a "normal rebuilder." Reconstruction error = *how far this row is from normal*. Normal rows define the ceiling (→ threshold); faulty rows sail past it, and the error concentrates in whichever columns the fault touched. The same 130 lines handle both anomalies with no `if class ==` anywhere.
+
+---
+
+## Script map
 
 | stage | memory leak | deadline miss |
 |--|--|--|
