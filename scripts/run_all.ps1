@@ -36,4 +36,8 @@ if($Fault -eq "memory_leak") {
     python ml\predictor.py --glob "datasets/memory_leak_*.csv"
 }
 
+Write-Output "Creating int8 .npz file locally"
+python ml\quantize.py
+
+
 Pause
