@@ -41,5 +41,7 @@ python .\ml\train_ae.py
 Write-Output "Creating int8 .npz file locally"
 python ml\quantize.py
 
+Write-Output "Generating .h artifact with calculated parameters"
+python .\ml\export_model.py
 
 Pause
