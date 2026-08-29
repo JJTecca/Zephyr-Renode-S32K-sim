@@ -36,6 +36,8 @@ if($Fault -eq "memory_leak") {
     python ml\predictor.py --glob "datasets/memory_leak_*.csv"
 }
 
+Write-Output "Re-run the .csv existing files & generate manifest again"
+python .\ml\train_ae.py
 Write-Output "Creating int8 .npz file locally"
 python ml\quantize.py
 
