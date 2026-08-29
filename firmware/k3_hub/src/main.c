@@ -1,10 +1,8 @@
 /*****************************************************************************
 * File:        main.c
-* Description: K3 zonal hub -- gathers edge telemetry and prints it. Receives
-*              over CAN when the bus is up (silicon); otherwise over the
-*              inter-node link UART (lpuart1) -- the Renode UART hub standing in
-*              for CAN FD in simulation (ADR-017).
-* Layer:       firmware/k3_hub  (on-vehicle loop host)
+* Description: K3 zonal hub -- gathers edge telemetry, runs the on-vehicle
+*              anomaly detector (float autoencoder, L2), and prints the score.
+* Layer:       firmware/k3_hub  (on-vehicle loop host: gather -> detect)
 * Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing
 * Copyright (c) 2026 Maior Cristian-Alexandru
 *****************************************************************************/
@@ -15,6 +13,7 @@
 #include <zephyr/drivers/uart.h>
 #include <stdlib.h>
 #include "telemetry.h"
+#include "ae_model.h"
 
 static const struct device *can_dev;
 static const struct device *link_uart;
@@ -26,22 +25,92 @@ static const struct can_filter telem_filter = {
     .flags = 0,
 };
 
+#define AE_WIN   10          /* dataset.py rolling window */
+#define AE_DT_S  0.1f        /* 100 ms tick */
+#define AE_W1    (AE_WIN + 1)
+
+static float    hf_hist[AE_W1], ll_hist[AE_W1];
+static uint32_t det_tick;
+static uint32_t latched_hf;
+static bool     have_hf;
+
+static void dense(const float *w, const float *b, const float *in, float *out,
+                  int no, int ni, int relu)
+{
+    for (int o = 0; o < no; o++) {
+        float acc = b[o];
+        for (int i = 0; i < ni; i++) {
+            acc += w[o * ni + i] * in[i];
+        }
+        out[o] = (relu && acc < 0.f) ? 0.f : acc;
+    }
+}
+
+static float ae_score(const float x[AE_D0])
+{
+    float z[AE_D0], h1[AE_D1], h2[AE_D2], h3[AE_D3], o[AE_D4];
+    for (int i = 0; i < AE_D0; i++) {
+        z[i] = (x[i] - ae_mu[i]) / ae_sd[i];         /* identical scaling to training */
+    }
+    dense((const float *)ae_w0, ae_b0, z,  h1, AE_D1, AE_D0, 1);
+    dense((const float *)ae_w1, ae_b1, h1, h2, AE_D2, AE_D1, 1);
+    dense((const float *)ae_w2, ae_b2, h2, h3, AE_D3, AE_D2, 1);
+    dense((const float *)ae_w3, ae_b3, h3, o,  AE_D4, AE_D3, 0);
+    float mse = 0.f;
+    for (int i = 0; i < AE_D4; i++) {
+        float d = o[i] - z[i];
+        mse += d * d;
+    }
+    return mse / AE_D4;                              /* reconstruction error */
+}
+
+static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latency)
+{
+    float hf = (float)heap_free, ll = (float)loop_latency;
+    hf_hist[det_tick % AE_W1] = hf;
+    ll_hist[det_tick % AE_W1] = ll;
+
+    uint32_t n   = det_tick < AE_WIN ? det_tick : AE_WIN;
+    uint32_t old = (det_tick - n) % AE_W1;
+    float hf_slope = n ? (hf - hf_hist[old]) / (n * AE_DT_S) : 0.f;
+    float ll_slope = n ? (ll - ll_hist[old]) / (n * AE_DT_S) : 0.f;
+    det_tick++;
+
+    float x[AE_D0] = { hf, hf_slope, ll, ll_slope };  /* FEATURES order */
+    float s = ae_score(x);
+    int alarm = s > AE_THRESHOLD;
+    int whole = (int)s;
+    int milli = (int)((s - (float)whole) * 1000.f);
+    printk("K3,score,seq=%u,score=%d.%03d,alarm=%d\n", seq, whole, milli, alarm);
+}
+
 /* Parse one telemetry line from the link UART: "L,node,signal,seq,value".
- * This is the hook point for the next phase (detector + supervisor). */
+ * Latch heap_free on sig 1; run the detector when loop_latency (sig 5) closes
+ * the tick -- one (heap_free, loop_latency) sample per tick. */
 static void handle_link_line(const char *line)
 {
     if (line[0] != 'L' || line[1] != ',') {
         return;
     }
     char *p = (char *)line + 2;
+    /* Convert a string to an unsigned long integer. */
     unsigned long node = strtoul(p, &p, 10); if (*p++ != ',') return;
     unsigned long sig  = strtoul(p, &p, 10); if (*p++ != ',') return;
     unsigned long sq   = strtoul(p, &p, 10); if (*p++ != ',') return;
     unsigned long val  = strtoul(p, &p, 10);
 
     printk("K3,rx,node=%lu,sig=%lu,seq=%lu,val=%lu\n", node, sig, sq, val);
-    /* TODO (next phase): feed heap-slope detector; on prediction, supervisor
-     * disposes within the whitelist (RESTART / DEGRADED_MODE / LOAD_SHED). */
+
+    if (node != SDV_NODE_POWERTRAIN) {               /* model trained on K1 powertrain */
+        return;
+    }
+    if (sig == SIG_HEAP_FREE) {
+        latched_hf = (uint32_t)val;
+        have_hf = true;
+    } else if (sig == SIG_LOOP_LATENCY && have_hf) {
+        detector_step((uint16_t)sq, latched_hf, (uint32_t)val);
+        have_hf = false;
+    }
 }
 
 int main(void)
