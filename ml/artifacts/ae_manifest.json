@@ -1,8 +1,17 @@
 {
   "glob": "datasets/memory_leak_*.csv",
   "files": [
+    "datasets\\memory_leak_128_seed1.csv",
+    "datasets\\memory_leak_128_seed2.csv",
+    "datasets\\memory_leak_128_seed3.csv",
     "datasets\\memory_leak_128_seed42.csv",
+    "datasets\\memory_leak_256_seed1.csv",
+    "datasets\\memory_leak_256_seed2.csv",
+    "datasets\\memory_leak_256_seed3.csv",
     "datasets\\memory_leak_256_seed42.csv",
+    "datasets\\memory_leak_64_seed1.csv",
+    "datasets\\memory_leak_64_seed2.csv",
+    "datasets\\memory_leak_64_seed3.csv",
     "datasets\\memory_leak_64_seed42.csv"
   ],
   "seed": 42,
@@ -17,19 +26,19 @@
   "scaler_mu": [
     8112.0,
     0.0,
-    0.20079787234042554,
-    0.0014775413711583924
+    0.192274678111588,
+    0.013018597997138769
   ],
   "scaler_sd": [
     1.0,
     1.0,
-    0.40059716275079105,
-    0.09773732350022409
+    0.39408771392758896,
+    0.13727991841954568
   ],
-  "threshold": 14.302451133728027,
+  "threshold": 4.629302501678467,
   "threshold_policy": "max(train-normal score) * 1.1",
   "fp_per_hour_at_threshold": 0.0,
-  "train_normal_rows": 2256,
-  "test_faulty_rows": 105,
+  "train_normal_rows": 1165,
+  "test_faulty_rows": 1051,
   "calib_rows": 256
 }
