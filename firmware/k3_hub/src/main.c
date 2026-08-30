@@ -36,6 +36,12 @@ static bool     have_hf;
 
 static void dense(const float *w, const float *b, const float *in, float *out,
                   int no, int ni, int relu)
+/*  step1  z = (x − ae_mu)/ae_sd            = [−136,   −1360,   −0.488,  −0.095]
+    step2  h1 = ReLU(W0·z + b0)   (8) = [0, 0, 335.48, 0, 74.84, 0, 180.37, 325.82]
+        h2 = ReLU(W1·h1 + b1)  (3) = [385.55, 180.34, 156.00]      ← bottleneck
+        h3 = ReLU(W2·h2 + b2)  (8) = [0, 449.84, 0, 0, 233.54, 245.08, 0, 0]
+        o  =      W3·h3 + b3   (4) = [−6.51, −10.13, 209.57, 22.28] ← rebuild
+    step3  score = mean((o − z)²)          = 470883.74 */
 {
     for (int o = 0; o < no; o++) {
         float acc = b[o];
@@ -72,6 +78,8 @@ static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latenc
 
     uint32_t n   = det_tick < AE_WIN ? det_tick : AE_WIN;
     uint32_t old = (det_tick - n) % AE_W1;
+    /* heap_free_slope    = (7976 − 9336) / (10 × 0.1) = −1360      (full leak rate)
+       loop_latency_slope = (0 − 0)       / (10 × 0.1) = 0 */
     float hf_slope = n ? (hf - hf_hist[old]) / (n * AE_DT_S) : 0.f;
     float ll_slope = n ? (ll - ll_hist[old]) / (n * AE_DT_S) : 0.f;
     det_tick++;
