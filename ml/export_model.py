@@ -41,8 +41,9 @@ def main() -> None:
 
     L = ["#ifndef SDV_AE_MODEL_H\n#define SDV_AE_MODEL_H\n",
          "/*****************************************************************************\n",
-         "  * File:        ae_model.h                                                   \n",
+         "* File:        ae_model.h                                                   \n",
          "* Description:   static const generated vars => DO NOT EDIT BY HAND           \n",
+         "*                - each column has a mean calculated over the 1k+ rows        \n",
          "* Layer:       firmware  (on-vehicle loop host)                               \n",
          "* Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing  \n",
          "* Copyright (c) 2026 Maior Cristian-Alexandru                                 \n",

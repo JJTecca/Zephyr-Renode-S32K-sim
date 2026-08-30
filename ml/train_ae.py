@@ -13,7 +13,7 @@ from dataset import FEATURES, Split, load_all, ts_split  # same directory
 
 TICK_HZ: float = 10.0  # convert FP count to per-hour
 
-# Those numbers are extracted fromt he ae.pt artifact u=[8112, 0, 0.2, 0.001], o=[1, 1, 0.4, 0.14])
+# Those numbers are extracted from the ae.pt artifact u=[8112, 0, 0.2, 0.001], o=[1, 1, 0.4, 0.14])
 # normal -> [ 0.000,     0.000,   −0.501,  −0.015]
 # faulty -> [−4216.0,  −1360.0,    1.995,  −0.015]
 
@@ -41,18 +41,18 @@ def build_ae(d: int) -> nn.Sequential:
 
 def train(split: Split, epochs: int, noise: float, seed: int) -> nn.Sequential:
     torch.manual_seed(seed)
-    Xtr = torch.tensor(split.Xtr_normal, dtype=torch.float32)  # NORMAL rows only
-    ae = build_ae(Xtr.shape[1])
-    opt = torch.optim.Adam(ae.parameters(), lr=1e-3)
-    loss_fn = nn.MSELoss()
+    Xtr = torch.tensor(split.Xtr_normal, dtype=torch.float32)  # X: [N,4] z-scored NORMAL rows only
+    ae = build_ae(Xtr.shape[1])                                # f(x)=W3·ReLU(W2·ReLU(W1·ReLU(W0x+b0)+b1)+b2)+b3
+    opt = torch.optim.Adam(ae.parameters(), lr=1e-3)           # update rule: θ ← θ − lr·∂L/∂θ  (θ = all w,b)
+    loss_fn = nn.MSELoss()                                     # L = mean over all N·4 elems of (out − X)²
     ae.train()
-    for _ in range(epochs):
-        opt.zero_grad()
-        out = ae(Xtr + noise * torch.randn_like(Xtr))  # denoising objective
-        loss_fn(out, Xtr).backward()
-        opt.step()
+    for _ in range(epochs):                                    # 300 passes over the full X
+        opt.zero_grad()                                        # reset ∂L/∂θ (grads accumulate otherwise)
+        out = ae(Xtr + noise * torch.randn_like(Xtr))          # rebuild CLEAN X from X+0.1·𝒩(0,1) (denoising)
+        loss_fn(out, Xtr).backward()                           # L(out, clean X); backprop fills every ∂L/∂w, ∂L/∂b
+        opt.step()                                             # θ ← θ − lr·∂L/∂θ : nudge all 135 params downhill
     ae.eval()
-    return ae
+    return ae                                                # return the trained network
 
 
 def recon_error(ae: nn.Sequential, X: np.ndarray) -> np.ndarray:
@@ -77,6 +77,7 @@ def main() -> None:
     ap.add_argument("--epochs", type=int, default=300)
     ap.add_argument("--noise", type=float, default=0.1)
     ap.add_argument("--seed", type=int, default=42)
+    # threshold = max(train-normal score) × 1.10
     ap.add_argument("--margin", type=float, default=1.10,
                     help="threshold = max(train-normal score) * margin (>=1.0)")
     ap.add_argument("--calib-size", type=int, default=256,

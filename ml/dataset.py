@@ -57,7 +57,7 @@ def pivot_wide(df: pd.DataFrame) -> pd.DataFrame:
 
 def _rolling_slope(series: pd.Series, window: int, dt_s: float) -> pd.Series:
     """Slope (units/second) over a trailing window (mean first-difference)."""
-    # check the series columns from the above table and subtract "v[i]-v[i+1]"
+    # slope = Δvalue / Δtime = (v[t] − v[t−w]) / (w × 0.1s)
     return series.diff().rolling(window, min_periods=2).mean() / dt_s #dt_s = changes per s
 
 
