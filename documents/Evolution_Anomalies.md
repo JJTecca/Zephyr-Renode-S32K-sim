@@ -272,3 +272,76 @@ feature table  ─────────────┬───────�
                             │ DETECT         │ PREDICT        │ PERSIST → quantize.py (int8)
                             ▼ ROC-AUC,FP/h   ▼ MAE (s)        ▼ ae.pt → ae_int8.tflite / .h
 ```
+
+---
+
+## Stage 5 — onto the M7: `quantize.py` + the firmware replay *(added Sprint 2 — the vertical slice)*
+
+Stages 0–4 run on your PC. Sprint 2 moves the **detector** onto the emulated Cortex-M7. Two new pieces, two new formula groups — but **no new detector math**: the same four operations, replayed on-chip.
+
+### New formula · int8 weight quantization (`quantize.py`)
+
+Each `nn.Linear` weight matrix `W` is mapped to 8-bit integers, per-tensor, symmetric:
+
+```
+scale = max(|W|) / 127
+q     = clip(round(W / scale), −127, 127)      # int8 weights
+W'    ≈ q × scale                              # dequantized back for inference ("fake quant")
+```
+
+Only `W` is rounded; the score formula is unchanged. **Parity gate** — the int8 model must keep its detection power:
+
+```
+AUC_drop = ROC_AUC(float) − ROC_AUC(int8)      # must stay ≤ 0.02
+```
+
+Measured: float AUC **1.000** → int8 AUC **1.000**, drop **0.000** (PASS) → saved to `ae_int8.npz`.
+*(ROC-AUC = P(a random faulty row scores above a random normal row); 1.0 = perfectly separable. Rounding barely changes the score **ranking**, so AUC is unmoved.)*
+
+### `export_model.py` — no formula, pure transcription
+
+Copies the trained `w/b`, the `μ/σ` scaler and the threshold out of `ae.pt` into a C header `firmware/common/ae_model.h` (`static const float ae_w0[8][4] = …`, `#define AE_THRESHOLD 4.6293025f`), row-major `[out][in]` — exactly how the firmware indexes `w[o*ni + i]`.
+
+### New formula · the on-device slope (ring buffer)
+
+Offline, `dataset.py` had the whole series and used a rolling window. The firmware sees one tick at a time, so it keeps the last 11 samples in a ring buffer and computes the **identical** derivative:
+
+```
+n     = min(tick, 10)                          # window fills over the first second
+slope = (v[t] − v[t − n]) / (n × 0.1 s)        # rise / run  ==  dataset.py's rolling slope
+```
+
+For `t ≥ 10` this is algebraically the same number as `series.diff().rolling(10).mean() / 0.1`.
+
+### The firmware detector = the same 4 steps, replayed (`ae_score`, `main.c`)
+
+| step | offline (Python) | on-device (C) |
+|--|--|--|
+| slope | `add_features` (rolling) | ring buffer `(v[t]−v[t−n])/(n·0.1)` |
+| standardize | `ts_split`  `z=(x−μ)/σ` | `z[i]=(x[i]−ae_mu[i])/ae_sd[i]` |
+| rebuild | `f(z)` (torch) | 4× `dense()` = `W·x + b` + ReLU |
+| score + decide | `mean((f(z)−z)²)` vs `thr` | same, then `alarm = score > AE_THRESHOLD` |
+
+**Output = one line per tick on the K3 console:**
+
+```
+K3,score,seq=1589,score=16249520.000,alarm=1
+```
+
+Verified: the C forward reproduces the PyTorch score exactly over a full 257-tick episode, **0 alarm mismatches**. The loop closes in sim — inject → K1 telemetry → K3 features → AE → score → alarm — on the emulated M7, no board.
+
+> **Note on the worked numbers above.** The `leak` row in *Step 4* (threshold **14.30**, recon ≈ 5.05M) is from the initial 3-file training snapshot. The **shipped** leak threshold, after retraining on all 12 CSVs, is **4.63** (see *Fork C* and `ae_manifest.json`); the exported header carries that value. The earlier magnitudes are kept for illustration.
+
+### Script map — extended to the M7
+
+```
+ae.pt ──quantize.py──► ae_int8.npz         (int8 parity: AUC drop 0.000)
+  │
+  └────export_model.py──► firmware/common/ae_model.h    (w, b, μ, σ, threshold as C consts)
+                              │
+                              ▼  #include
+                      firmware/k3_hub/main.c
+                      ring-buffer slope → z-score → dense×4 → mean((o−z)²) → > AE_THRESHOLD
+                              ▼
+                      "K3,score,seq=…,alarm=…"    (K3 console, live on the M7)
+```
