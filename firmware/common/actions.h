@@ -27,3 +27,5 @@ enum sdv_actions_id {
     SDV_DEGRADED_MODE = 2,
     SDV_LOAD_SHED = 3,
 };
+
+#endif /* SDV_ACTIONS_H */
