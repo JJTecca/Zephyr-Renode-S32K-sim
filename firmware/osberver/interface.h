@@ -25,9 +25,9 @@ class ISubject {
 * TYPE DEFINITIONS
 ***************************************************/
 
-/* List to store the subscribers for the subject (C-style, no STL) */
+/* List to store the subscribers for the subject */
 typedef struct list {
-    IObserver   *observer;   /* was unsigned int data -> the subscriber pointer */
+    IObserver   *observer;
     struct list *next;
 } list;
 
