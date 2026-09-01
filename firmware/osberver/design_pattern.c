@@ -24,8 +24,8 @@ class EdgeNode : public IObserver {
         EdgeNode(const char *name, int node_id) : name_(name), node_id_(node_id) {}
         void Update(const char *message_from_subject) override
         {
-            std::cout << "   [K1 " << name_ << " id=" << node_id_
-                      << "] observed -> " << message_from_subject << "\n";
+            std::cout << "      -> [id " << node_id_ << "] " << name_
+                      << " : " << message_from_subject << "\n";
         }
     private:
         const char *name_;
@@ -61,10 +61,9 @@ class ZonalHub : public ISubject {
         /* Detector verdict -> whitelist action -> broadcast to every node. */
         void RaiseIncident(const char *source, int action, float ttf_s)
         {
-            std::snprintf(message_, sizeof(message_),
-                          "INCIDENT src=%s ttf=%.1fs -> action=%s",
+            std::snprintf(message_, sizeof(message_), "%s ttf %.1fs -> %s",
                           source, ttf_s, action_name(action));
-            std::cout << "[K3 hub] " << message_ << "  (fanning out to all nodes)\n";
+            std::cout << "[K3 hub] incident: " << message_ << "  (notifying all nodes)\n";
             Notify();
         }
 
@@ -75,7 +74,9 @@ class ZonalHub : public ISubject {
 
 int main()
 {
-    std::cout << "=== SDV Observer (K3 hub -> 4x K1 edge) : Observer test v0 ===\n\n";
+    std::cout << "============================================================\n";
+    std::cout << "  SDV Observer    K3 zonal hub  ->  4x K1 edge nodes\n";
+    std::cout << "============================================================\n\n";
 
     ZonalHub hub;
     EdgeNode powertrain("powertrain", SDV_NODE_POWERTRAIN);
@@ -87,14 +88,14 @@ int main()
     hub.Attach(&chassis);
     hub.Attach(&body);
     hub.Attach(&acoustic);
-    std::cout << "[K3 hub] 4 edge nodes attached.\n\n";
+    std::cout << "[K3 hub] 4 edge nodes attached\n\n";
 
-    std::cout << "-- powertrain heap draining: AE alarm, ttf 6.2s --\n";
+    std::cout << "------------------------------------------------------------\n";
     hub.RaiseIncident("powertrain", SDV_RESTART, 6.2f);
 
-    std::cout << "\n-- body deadline-miss: early warning --\n";
+    std::cout << "\n------------------------------------------------------------\n";
     hub.RaiseIncident("body", SDV_DEGRADED_MODE, 0.0f);
 
-    std::cout << "\nDetach() is a no-op in v0 (TBD: when we have hardware).\n";
+    std::cout << "\n[K3 hub] Detach() no-op in v0 (TBD when we have hardware)\n";
     return 0;
 }
