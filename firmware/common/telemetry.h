@@ -42,6 +42,7 @@ enum sdv_signal {
     SIG_CAN_TX_ERR   = 3,
     SIG_CAN_RX_ERR   = 4,
     SIG_LOOP_LATENCY = 5,
+    SIG_ACTION_TAKEN = 6,
     SIG_HEARTBEAT    = 0xFE,
 };
 

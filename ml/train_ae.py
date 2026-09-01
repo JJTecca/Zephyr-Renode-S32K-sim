@@ -46,6 +46,14 @@ def train(split: Split, epochs: int, noise: float, seed: int) -> nn.Sequential:
     opt = torch.optim.Adam(ae.parameters(), lr=1e-3)           # update rule: θ ← θ − lr·∂L/∂θ  (θ = all w,b)
     loss_fn = nn.MSELoss()                                     # L = mean over all N·4 elems of (out − X)²
     ae.train()
+    # initial (random)  W0[0][3] = 0.459306
+    # step 1: grad = +0.01152 -> move −0.001000 -> 0.458306
+    # step 2: grad = +0.01136 -> move −0.001000 -> 0.457306
+    # step 3: grad = +0.01104 -> move −0.000998 -> 0.456308
+    # step 4: grad = +0.01087 -> move −0.000997 -> 0.455311
+    # step 5: grad = +0.00537 -> move −0.000947 -> 0.454364
+    #         … 295 more steps, the gradient keeps changing as the whole net reshapes …
+    # after 300 steps   W0[0][3] = 0.774480
     for _ in range(epochs):                                    # 300 passes over the full X
         opt.zero_grad()                                        # reset ∂L/∂θ (grads accumulate otherwise)
         out = ae(Xtr + noise * torch.randn_like(Xtr))          # rebuild CLEAN X from X+0.1·𝒩(0,1) (denoising)

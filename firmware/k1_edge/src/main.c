@@ -15,6 +15,7 @@
 #include <zephyr/drivers/uart.h>
 #include <zephyr/sys/sys_heap.h>
 #include "telemetry.h"
+#include "actions.h"
 
 #define TICK_MS       100
 #define LEAK_HEAP_SZ  8192

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "telemetry.h"
 #include "ae_model.h"
+#include "actions.h"
 
 static const struct device *can_dev;
 static const struct device *link_uart;

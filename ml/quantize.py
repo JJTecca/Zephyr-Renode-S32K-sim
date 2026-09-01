@@ -38,6 +38,8 @@ def quantize_weights(ae: nn.Sequential) -> dict:
             continue
         w = layer.weight.detach().numpy()
         scale = float(np.abs(w).max()) / 127.0 or 1e-12
+        # Existing numbers printing them as test : 
+        # print(f"Printing scale : {scale}")
         q = np.clip(np.round(w / scale), -127, 127).astype(np.int8)
         layer.weight.data = torch.tensor(q.astype(np.float32) * scale)
         export[f"l{i}_w"] = q
@@ -63,7 +65,7 @@ def main() -> None:
     ae.eval()
     auc_f = roc_auc_score(split.yte, recon_error(ae, split.Xte))
 
-    export = quantize_weights(ae)                    # ae now holds int8 weights
+    export = quantize_weights(ae) # ae now holds int8 weights
     auc_q = roc_auc_score(split.yte, recon_error(ae, split.Xte))
     drop = auc_f - auc_q
 
