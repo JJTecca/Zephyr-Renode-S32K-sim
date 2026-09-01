@@ -42,6 +42,8 @@ static void link_emit(uint8_t signal, uint32_t value)
     for (int i = 0; i < n; i++) {
         uart_poll_out(link_uart, buf[i]);
     }
+    printk("K1,tx,link,node=%u,sig=%u,seq=%u,val=%u\n",
+           (unsigned)CONFIG_SDV_NODE_ID, signal, seq, value);
 }
 
 static void send_telem(uint8_t signal, uint32_t value)

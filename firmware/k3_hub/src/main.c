@@ -91,6 +91,10 @@ static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latenc
     int whole = (int)s;
     int milli = (int)((s - (float)whole) * 1000.f);
     printk("K3,score,seq=%u,score=%d.%03d,alarm=%d\n", seq, whole, milli, alarm);
+    if (alarm) {
+        printk("K3,observer,notify,src=%u,action=%u\n",
+               SDV_NODE_POWERTRAIN, SDV_RESTART);
+    }
 }
 
 /* Parse one telemetry line from the link UART: "L,node,signal,seq,value".
