@@ -71,10 +71,7 @@ class ZonalHub : public ISubject {
 
 int main()
 {
-    std::cout << "============================================================\n";
-    std::cout << "  SDV Observer    K3 zonal hub  ->  4x K1 edge nodes\n";
-    std::cout << "============================================================\n\n";
-
+    /* TBD : We could use this in the UI interface, last layer */
     ZonalHub hub;
     EdgeNode powertrain("powertrain", SDV_NODE_POWERTRAIN);
     EdgeNode chassis("chassis", SDV_NODE_CHASSIS);
@@ -92,7 +89,5 @@ int main()
 
     std::cout << "\n------------------------------------------------------------\n";
     hub.RaiseIncident("body", SDV_DEGRADED_MODE, 0.0f);
-
-    std::cout << "\n[K3 hub] Detach() no-op in v0 (TBD when we have hardware)\n";
     return 0;
 }

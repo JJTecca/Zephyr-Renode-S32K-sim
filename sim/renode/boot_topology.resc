@@ -1,11 +1,9 @@
-# boot_topology.resc -- K3 + K1 on a shared UART "bus" (Renode UART hub),
-# standing in for CAN FD in sim (ADR-017). The CAN hub is kept but inert until
-# CAN works on hardware.
+# boot_topology = "upload elf on Renode" without any CAD (we dont have hardware for now)
 
 emulation CreateCANHub  "canbus0"
 emulation CreateUARTHub "uartbus0"
 
-# ---- K3 zonal hub (the aggregator) ----
+# ---- K3 zonal hub (aggregator) ----
 mach create "k3_hub"
 machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k3_hub_s32k388.repl
 sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k3_hub/zephyr/zephyr.elf
@@ -14,7 +12,7 @@ connector Connect sysbus.can0    canbus0
 connector Connect sysbus.lpuart1 uartbus0
 showAnalyzer sysbus.lpuart2
 
-# ---- K1 powertrain, node 1 (sender) ----
+# ---- K1 4x edge
 mach create "k1_powertrain"
 machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k1_edge.repl
 sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k1_powertrain/zephyr/zephyr.elf
@@ -23,11 +21,36 @@ connector Connect sysbus.can0    canbus0
 connector Connect sysbus.lpuart1 uartbus0
 showAnalyzer sysbus.lpuart2
 
-# cross-machine sync so bytes cross cleanly (Antmicro's two-node test uses these)
+mach create "k1_chassis"
+machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k1_edge.repl
+sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k1_chassis/zephyr/zephyr.elf
+cpu0 VectorTableOffset `sysbus GetSymbolAddress "_vector_table"`
+connector Connect sysbus.can0    canbus0
+connector Connect sysbus.lpuart1 uartbus0
+showAnalyzer sysbus.lpuart2
+
+mach create "k1_body"
+machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k1_edge.repl
+sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k1_body/zephyr/zephyr.elf
+cpu0 VectorTableOffset `sysbus GetSymbolAddress "_vector_table"`
+connector Connect sysbus.can0    canbus0
+connector Connect sysbus.lpuart1 uartbus0
+showAnalyzer sysbus.lpuart2
+
+mach create "k1_acoustic"
+machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k1_edge.repl
+sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k1_acoustic/zephyr/zephyr.elf
+cpu0 VectorTableOffset `sysbus GetSymbolAddress "_vector_table"`
+connector Connect sysbus.can0    canbus0
+connector Connect sysbus.lpuart1 uartbus0
+showAnalyzer sysbus.lpuart2
+
+# cross-machine sync so bytes cross cleanly
 emulation SetGlobalQuantum "0.000025"
 emulation SetGlobalSerialExecution True
 
-# Create file for logs
+# capture the powertrain (node 1) console -> the log the ML campaign parses
+mach set "k1_powertrain"
 sysbus.lpuart2 CreateFileBackend @D:/zephyr-ws/Zephyr-Renode-S32K-sim/k1_telem.log
 
 start

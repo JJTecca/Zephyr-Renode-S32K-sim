@@ -20,6 +20,7 @@
 #define TICK_MS       100
 #define LEAK_HEAP_SZ  8192
 #define BUSY_CAP_US   500000u   /* stalling threshold because we dont want to go higher */
+#define STAGGER_MS    25        /* senders don't collide */
 
 static struct sdv_fault_ctl volatile sdv_fault_ctl;
 
@@ -97,6 +98,8 @@ int main(void)
         printk("K1,can,unavailable_sim\n");
     }
 
+    /* #define CONFIG_SDV_NODE_ID 1 */
+    k_msleep((CONFIG_SDV_NODE_ID - 1) * STAGGER_MS);
     while (1) {
         int64_t t0 = k_uptime_get();
         bool armed = (sdv_fault_ctl.magic == SDV_FAULT_MAGIC);

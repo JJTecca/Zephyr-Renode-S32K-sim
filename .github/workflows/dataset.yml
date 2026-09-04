@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: Zephyr-Renode-S32K-sim
+          fetch-depth: 0
       - uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: Zephyr-Renode-S32K-sim
@@ -93,4 +93,8 @@ jobs:
           fi
           # [skip ci] + path filter (datasets/** not watched) both prevent a re-trigger loop
           git commit -m "[CHORE] Overwrite csv files"
-          git push
+          for i in 1 2 3 4 5; do
+            git fetch origin main && git rebase origin/main && git push origin HEAD:main && break
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done

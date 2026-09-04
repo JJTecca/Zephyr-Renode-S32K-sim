@@ -1,8 +1,9 @@
 #ifndef SDV_AE_MODEL_H
 #define SDV_AE_MODEL_H
 /*****************************************************************************
-  * File:        ae_model.h                                                   
+* File:        ae_model.h                                                   
 * Description:   static const generated vars => DO NOT EDIT BY HAND           
+*                - each column has a mean calculated over the 1k+ rows        
 * Layer:       firmware  (on-vehicle loop host)                               
 * Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing  
 * Copyright (c) 2026 Maior Cristian-Alexandru                                 
