@@ -2,12 +2,6 @@ Write-Output "Starting to compile project and generating .elf files K1 & K3"
 ./s32k1k3_build_os.ps1
 Start-Sleep -Seconds 3
 
-Write-Output "Building & running the Observer design-pattern demo (host C++)"
-cmake -S firmware/osberver -B build/observer -G Ninja | Out-Host
-cmake --build build/observer | Out-Host
-& build/observer/observer_demo.exe
-Start-Sleep -Seconds 2
-
 Write-Output "Opening Renode Simulator via edge and main hub elf files"
 Write-Output "Paste the following :"
 Write-Output "Clear

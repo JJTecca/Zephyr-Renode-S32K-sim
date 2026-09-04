@@ -5,9 +5,6 @@
 #include "actions.h"
 #include "telemetry.h"
 
-/* Adapted from refactoring.guru Observer (C++), but the subscriber container is
-   the C-style `list` from interface.h -- no std::list / std::string. */
-
 static const char *action_name(int a)
 {
     switch (a) {
