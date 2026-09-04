@@ -26,19 +26,19 @@
   "scaler_mu": [
     8112.0,
     0.0,
-    0.192274678111588,
-    0.013018597997138769
+    0.20257510729613734,
+    0.03453913754342939
   ],
   "scaler_sd": [
     1.0,
     1.0,
-    0.39408771392758896,
-    0.13727991841954568
+    0.4019184409803757,
+    0.3793295266810346
   ],
-  "threshold": 4.629302501678467,
+  "threshold": 10.254096031188965,
   "threshold_policy": "max(train-normal score) * 1.1",
-  "fp_per_hour_at_threshold": 28.548770816812056,
+  "fp_per_hour_at_threshold": 0.0,
   "train_normal_rows": 1165,
-  "test_faulty_rows": 1218,
+  "test_faulty_rows": 1217,
   "calib_rows": 256
 }
