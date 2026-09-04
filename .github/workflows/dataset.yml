@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          path: Zephyr-Renode-S32K-sim
       - uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: Zephyr-Renode-S32K-sim
