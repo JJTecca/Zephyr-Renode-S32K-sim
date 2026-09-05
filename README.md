@@ -1,206 +1,123 @@
-# Zephyr-Renode-S32K-sim — build & run guide (Windows)
+# Zephyr-Renode-S32K-sim
 
-The Zephyr + Renode bench for the SDV Fault Prediction & Self-Healing thesis.
-This README is a **step-by-step tutorial for building the firmware and running
-it in Renode on Windows**, using `cmd.exe`. For what the project *is* — the
-architecture, coverage, fault classes, hardware plan — see
-[`docs/overview.md`](docs/overview.md).
+Zephyr + Renode simulation slice of the **SDV Fault-Prediction & Self-Healing**
+thesis (Maior Cristian-Alexandru, ULBS). Two-tier NXP S32 topology emulated in
+Renode with **no physical board**: S32K1 edge nodes (sense + inject) stream
+telemetry to an S32K3 zonal hub (gather → detect → predict → act). The hub runs
+an on-target autoencoder anomaly detector; fault injection + auto-labelling
+produce the project's own telemetry datasets.
 
-> Target board: `mr_canhubk3/s32k344` (Cortex-M7). Zephyr **v4.2.0**.
-> Renode platform: upstream S32K388 ("S32K3-class").
+For architecture, fault classes and the hardware plan see
+[`docs/overview.md`](docs/overview.md); for verified platform facts see
+[`docs/simulation-coverage.md`](docs/simulation-coverage.md).
+
+> Board `mr_canhubk3/s32k344` (Cortex-M7) · Zephyr **v4.2.0** · SDK **0.17.x** ·
+> Renode **1.16.x** · Renode platform: upstream S32K388.
 
 ---
 
-## 0 · Prerequisites (install once)
+## Prerequisites
 
-| Tool | How | Notes |
+Install once. Everything lives on `D:` so `C:` doesn't fill up — adjust the drive
+if you use another.
+
+| Tool | Install | Notes |
 |---|---|---|
-| **Python 3.13** | python.org | used for the venv + `west` |
-| **CMake** | winget install Kitware.CMake | on `PATH` |
-| **Ninja** | `pip install ninja` (into the venv, step 1) | build backend |
-| **Device Tree Compiler** | comes with MSYS2 (`dtc`) or Zephyr deps | `dtc --version` |
-| **7-Zip** | https://www.7-zip.org | needed to extract the SDK |
-| **Renode** | https://renode.io (1.16.x) | the simulator |
+| **Python 3.13** | python.org | venv + `west` + the ML pipeline |
+| **CMake** | `winget install Kitware.CMake` | on `PATH` |
+| **Ninja** | `pip install ninja` (into the venv) | build backend |
+| **Device Tree Compiler** | MSYS2 (`dtc`) | `dtc --version` |
+| **7-Zip** | 7-zip.org | extracts the Zephyr SDK |
+| **Zephyr SDK 0.17.x** | `west sdk install` (step below) | must match Zephyr v4.2.0 — **not** 1.0.x |
+| **Renode 1.16.x** | renode.io | the simulator |
 | **git** | git-scm.com | `git config --global core.longpaths true` |
 
-Everything below keeps the workspace and SDK **on `D:`** so the `C:` drive
-doesn't fill up. Adjust paths if you use a different drive.
+Python packages for the ML pipeline (into the venv): `pandas scikit-learn torch`.
 
 ---
 
-## 1 · Workspace + west
+## Setup + run (project side)
 
-Clone into a workspace folder, create a venv, install `west`:
+One block, from an empty `D:\zephyr-ws` to a full build → simulate → dataset → ML
+run. `west sdk install` reads the required SDK version from `zephyr\SDK_VERSION`,
+so it must come **after** `west update`.
 
 ```cmd
-mkdir D:\zephyr-ws
-cd /d D:\zephyr-ws
+:: 1 - workspace + west
+mkdir D:\zephyr-ws && cd /d D:\zephyr-ws
 git clone https://github.com/JJTecca/Zephyr-Renode-S32K-sim.git
-
 python -m venv .venv
 call .venv\Scripts\activate.bat
-pip install west ninja
-```
+pip install west ninja pandas scikit-learn torch
 
-Result: the repo sits at `D:\zephyr-ws\Zephyr-Renode-S32K-sim` and the workspace
-top dir is `D:\zephyr-ws`.
-
----
-
-## 2 · Fetch Zephyr + modules
-
-The repo **is** the west manifest repo, so init points west at it, and `update`
-pulls Zephyr v4.2.0 + the NXP HAL (allowlisted modules only):
-
-```cmd
+:: 2 - fetch Zephyr v4.2.0 + NXP HAL (this repo IS the west manifest)
 cd /d D:\zephyr-ws\Zephyr-Renode-S32K-sim
 west init -l .
 west update
 west zephyr-export
-```
 
-- `west init -l .` registers this repo's `west.yml` as the manifest.
-- `west update` clones `zephyr\` and `modules\hal\{nxp,cmsis,cmsis_6}\` under
-  `D:\zephyr-ws\`.
-- `west zephyr-export` registers this Zephyr with CMake so `find_package(Zephyr)`
-  resolves — **no `ZEPHYR_BASE` env var needed**.
-
-Verify one Zephyr checkout at v4.2.0:
-
-```cmd
-west list
-```
-
-You should see `zephyr  zephyr  v4.2.0` and the three `modules\hal\...` entries.
-
----
-
-## 3 · Install the Zephyr SDK — version must match Zephyr
-
-> ⚠️ **This is the step that bites.** Zephyr **v4.2.0 needs SDK 0.17.x**. The
-> newer **SDK 1.0.x is incompatible** (major-version bump) and CMake will reject
-> it with *"Could not find a configuration file for package Zephyr-sdk compatible
-> with requested version 0.16"*. `west sdk install` reads the required version
-> from `zephyr\SDK_VERSION`, so run it **after** step 2 with this workspace active.
-
-Add 7-Zip to `PATH` for this session, then install **only the ARM toolchain**,
-onto `D:`:
-
-```cmd
+:: 3 - Zephyr SDK 0.17.x (ARM toolchain only), onto D:
 set PATH=%PATH%;C:\Program Files\7-Zip
 west sdk install --install-base D:\ -t arm-zephyr-eabi
-```
-
-That creates `D:\zephyr-sdk-0.17.x` (~800 MB) and registers it with CMake.
-Find the exact folder name:
-
-```cmd
-dir D:\ /b | findstr zephyr-sdk
-```
-
-Point the toolchain env var at it (substitute the real `0.17.x`) — permanent
-via `setx`, and live in this session via `set`:
-
-```cmd
 setx ZEPHYR_SDK_INSTALL_DIR "D:\zephyr-sdk-0.17.2"
 set ZEPHYR_SDK_INSTALL_DIR=D:\zephyr-sdk-0.17.2
+
+:: 4 - build + simulate + generate datasets + run ML (one entry point)
+powershell -ExecutionPolicy Bypass -File scripts\run_all.ps1
 ```
 
-<details>
-<summary>Manual fallback if <code>--install-base</code> is rejected</summary>
+`scripts\run_all.ps1` orchestrates the whole loop: builds the K3 hub + 4×K1 ELFs
+(`s32k1k3_build_os.ps1`), opens Renode on the topology, injects a fault, parses
+the captured UART log into a labelled CSV (`run_campaign.py`), then runs the ML
+pipeline (`dataset.py` → `baseline.py` → `predictor.py` → `train_ae.py` →
+`quantize.py` → `export_model.py`). Launch it from the **repo root**.
 
-```cmd
-type D:\zephyr-ws\zephyr\SDK_VERSION
-cd /d D:\
-curl -L -o sdk.7z https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.2/zephyr-sdk-0.17.2_windows-x86_64_minimal.7z
-"C:\Program Files\7-Zip\7z.exe" x sdk.7z
-cd /d D:\zephyr-sdk-0.17.2
-setup.cmd
-```
-At the `setup.cmd` prompts answer: `Y` (GNU), `N` (all targets), `Y` **only for
-`arm-zephyr-eabi`** and `N` for every other target, `N` (LLVM), `N` (host tools),
-`Y` (register CMake package). Substitute whatever version `SDK_VERSION` printed.
-</details>
+For headless, multi-seed/rate dataset generation (no GUI) use
+`scripts\run_all_ci.ps1`; the same flow runs in CI via
+[`.github/workflows/dataset.yml`](.github/workflows/dataset.yml).
+
+**Renode-only sanity** (zero build): in the Renode monitor,
+`include @sim/renode/sanity_shell.resc` then `start` — a UART window shows the
+Zephyr shell (`uart:~$`). The `Unhandled write to ...` warnings are expected
+(the S32K388 model omits some clock/flash peripherals).
 
 ---
 
-## 4 · Build the firmware
+## Repository map
 
-```cmd
-cd /d D:\zephyr-ws\Zephyr-Renode-S32K-sim
-west build -b mr_canhubk3/s32k344 firmware\k1_edge -d build\k1_powertrain
-```
-
-Success ends with a memory-usage report and produces:
-
-```
-build\k1_powertrain\zephyr\zephyr.elf
-```
-
-Build the K3 hub the same way, and a second K1 instance via its node-ID option:
-
-```cmd
-west build -b mr_canhubk3/s32k344 firmware\k3_hub  -d build\k3_hub
-west build -b mr_canhubk3/s32k344 firmware\k1_edge -d build\k1_chassis -- -DCONFIG_SDV_NODE_ID=2
-```
-
-**Rebuild clean** (after touching `prj.conf`, `Kconfig`, or the board):
-
-```cmd
-rmdir /s /q build\k1_powertrain
-west build -b mr_canhubk3/s32k344 firmware\k1_edge -d build\k1_powertrain
-```
-
----
-
-## 5 · Run in Renode
-
-**Toolchain sanity (zero build) —** proves your Renode + S32K388 model work.
-In the Renode monitor:
-
-```
-include @scripts/single-node/nxp-s32k388_zephyr.resc
-start
-```
-A UART window shows a Zephyr shell prompt (`uart:~$`). The wall of
-`Unhandled write to ...` warnings is normal — the S32K388 model doesn't
-implement every clock/flash peripheral.
-
-**Boot your own ELF —** in the Renode monitor (use forward slashes in paths):
-
-```
-mach create "k1_powertrain"
-machine LoadPlatformDescription @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/k1_edge.repl
-sysbus LoadELF @D:/zephyr-ws/Zephyr-Renode-S32K-sim/build/k1_powertrain/zephyr/zephyr.elf
-showAnalyzer sysbus.lpuart2
-start
-```
-The UART window prints the boot lines (`K1,boot,...`) and telemetry.
-
----
-
-## Troubleshooting
-
-| Symptom | Cause → fix |
+| File / dir | Purpose |
 |---|---|
-| `Could not find ... Zephyr-sdk compatible with requested version 0.16` | SDK too new (1.0.x). Install **0.17.x** and repoint `ZEPHYR_SDK_INSTALL_DIR` (step 3). |
-| `zephyr/dt-bindings/pinctrl/nxp-s32-pinctrl.h: No such file` | Zephyr ↔ hal_nxp version mismatch (a second, older Zephyr in the tree). Keep **one** Zephyr checkout; `west update` + `west zephyr-export`. |
-| `include could not find requested file: zephyr_default` then the compiler test links with `-lkernel32` | `find_package(Zephyr)` didn't run — Zephyr not registered. Run `west zephyr-export`. |
-| `west: unknown command "build"` | Wrong dir or manifest not resolving. `cd` into the repo; check `west config manifest.path`. |
-| `ninja: not found` | `pip install ninja` inside the active venv. |
-| Everything installs onto `C:` | Set `--install-base D:\` for the SDK; redirect caches with `set PIP_CACHE_DIR=D:\caches\pip`. |
-
----
-
-## What's next (bring-up order)
-
-1. `sanity_shell.resc` — Renode proof, zero build ✅ (step 5).
-2. Build all three ELFs (step 4).
-3. `sim/renode/boot_topology.resc` + `start` — 2×K1 + K3 on one CAN bus.
-4. `scripts/setup_vcan.sh` + SocketCAN bridge — candump/Wireshark on the host.
-5. `sim/run_campaign.py --config sim/configs/memory_leak.yaml --seed 42` — first
-   labelled dataset; same seed twice → identical bytes.
-
-Architecture, coverage %, fault-class table, hardware plan, deliverables:
-[`docs/overview.md`](docs/overview.md) · verified platform facts:
-[`docs/simulation-coverage.md`](docs/simulation-coverage.md) · research brain: `vault/`.
+| `firmware/k1_edge/src/main.c` | K1 edge node — samples heap/timing, emits `TELEM,` + `L,` link frames (dual-emit link-UART / CAN-when-up) |
+| `firmware/k3_hub/src/main.c` | K3 zonal hub — receives K1 telemetry, runs the float AE detector, emits `K3,score,…alarm=` and `K3,observer,notify` |
+| `firmware/common/telemetry.h` | Frozen telemetry schema (ADR-007) + signal IDs |
+| `firmware/common/actions.h` | Whitelist action enum (RESTART / DEGRADED_MODE / LOAD_SHED) + node IDs |
+| `firmware/common/ae_model.h` | **Generated** AE weights / scaler / threshold — do not edit (from `export_model.py`) |
+| `firmware/k1_edge/Kconfig` | `SDV_NODE_ID` build option (node identity) |
+| `firmware/*/prj.conf`, `*/app.overlay` | Per-node Zephyr / board config |
+| `firmware/osberver/` | Host-only GoF Observer demo — teaching artifact, **not** built into firmware |
+| `ml/dataset.py` | CSV load, long→wide pivot, rolling-slope features, time-series split + scaler |
+| `ml/train_ae.py` | Trains the denoising autoencoder on normal rows → `ae.pt` + manifest + calib set |
+| `ml/quantize.py` | int8 post-training quantization + ROC-AUC parity gate → `ae_int8.npz` |
+| `ml/export_model.py` | Emits `firmware/common/ae_model.h` from `ae.pt` |
+| `ml/baseline.py` | Detection baselines (ROC-AUC, false-positives/hour) |
+| `ml/predictor.py` | Heap-slope → time-to-OOM regression (analytic vs linreg) |
+| `ml/gnn.py` | Cross-ECU GNN stub (Sprint 5) |
+| `ml/api.py`, `ingest.py`, `metrics.py`, `reporter.py` | Off-vehicle backbone stubs (Sprint 4–5) |
+| `ml/artifacts/` | Trained outputs: `ae.pt`, `ae_int8.npz`, `ae_manifest.json`, `calib.npy` |
+| `sim/run_campaign.py` | Labels a K1 UART log into a dataset CSV (analytical ttf ground truth) |
+| `sim/configs/*.yaml` | Per fault-class parameters (rate, onset, run length) |
+| `sim/renode/boot_topology.resc` | Boots the 2×K1 + K3 topology |
+| `sim/renode/sanity_shell.resc` | Zero-build Renode shell sanity check |
+| `sim/renode/*.repl` | Platform descriptions (`k1_edge`, `k3_hub_s32k388`; `mr_canhubk3` parked) |
+| `sim/renode/fault_hooks.py` | Renode monitor commands: `inject_memory_leak` / `inject_busy_spin` / `clear_faults` |
+| `scripts/run_all.ps1` | One-shot local: build → Renode → campaign → ML |
+| `scripts/run_all_ci.ps1` | Headless multi-seed/rate campaign driver |
+| `scripts/s32k1k3_build_os.ps1` | Builds the K3 hub + 4×K1 ELFs |
+| `scripts/renode_open.py` | Launches the Renode GUI (Windows) |
+| `tests/renode/*.robot` | Renode Robot-Framework tests (see `tests/renode/README`) |
+| `datasets/*.csv` | Generated labelled telemetry datasets |
+| `documents/` | Thesis scope (thematic plan, chapter structure) + roadmaps |
+| `docs/` | Architecture overview, simulation coverage, code style |
+| `evidence/` | Captured plots (heap drain per leak rate) |
+| `.github/workflows/` | CI (build + Renode robot), dataset generation, PR-title gate |
+| `west.yml` | west manifest — Zephyr v4.2.0 + NXP HAL (allowlisted modules) |

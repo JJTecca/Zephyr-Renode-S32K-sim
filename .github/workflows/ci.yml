@@ -41,11 +41,14 @@ jobs:
           app-path: Zephyr-Renode-S32K-sim
           toolchains: arm-zephyr-eabi
 
-      - name: Build K1 edge
-        run: west build -b mr_canhubk3/s32k344 Zephyr-Renode-S32K-sim/firmware/k1_edge -d build/k1_powertrain
-
-      - name: Build K3 hub
-        run: west build -b mr_canhubk3/s32k344 Zephyr-Renode-S32K-sim/firmware/k3_hub -d build/k3_hub
+      - name: Build K3 hub + 4x K1 edge (5 ELFs)
+        run: |
+          cd Zephyr-Renode-S32K-sim
+          west build -b mr_canhubk3/s32k344 firmware/k3_hub  -d ../build/k3_hub
+          west build -b mr_canhubk3/s32k344 firmware/k1_edge -d ../build/k1_powertrain -- -DCONFIG_SDV_NODE_ID=1
+          west build -b mr_canhubk3/s32k344 firmware/k1_edge -d ../build/k1_chassis    -- -DCONFIG_SDV_NODE_ID=2
+          west build -b mr_canhubk3/s32k344 firmware/k1_edge -d ../build/k1_body       -- -DCONFIG_SDV_NODE_ID=3
+          west build -b mr_canhubk3/s32k344 firmware/k1_edge -d ../build/k1_acoustic   -- -DCONFIG_SDV_NODE_ID=4
 
       - name: Upload ELFs
         uses: actions/upload-artifact@v4
@@ -53,8 +56,11 @@ jobs:
           name: elfs
           retention-days: 7
           path: |
-            build/k1_powertrain/zephyr/zephyr.elf
             build/k3_hub/zephyr/zephyr.elf
+            build/k1_powertrain/zephyr/zephyr.elf
+            build/k1_chassis/zephyr/zephyr.elf
+            build/k1_body/zephyr/zephyr.elf
+            build/k1_acoustic/zephyr/zephyr.elf
 
   simulate:
     name: Renode smoke + fault test
@@ -72,7 +78,8 @@ jobs:
       - name: Run Renode Robot tests
         uses: antmicro/renode-test-action@v5
         with:
-          tests-to-run: tests/renode/k1_uart.robot
+          tests-to-run: tests/renode/test_suite.robot
+          renode-arguments: --exclude pending --exclude campaign
           artifacts-path: renode-artifacts
 
       - name: Upload Renode logs
