@@ -14,6 +14,7 @@
 #include <zephyr/drivers/can.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/sys/sys_heap.h>
+#include <zephyr/sys/reboot.h>
 #include "telemetry.h"
 #include "actions.h"
 
@@ -23,6 +24,8 @@
 #define STAGGER_MS    25        /* senders don't collide */
 
 static struct sdv_fault_ctl volatile sdv_fault_ctl;
+static char cmd_buf[48];
+static int  cmd_len;
 
 K_HEAP_DEFINE(leak_heap, LEAK_HEAP_SZ);
 
@@ -45,6 +48,34 @@ static void link_emit(uint8_t signal, uint32_t value)
     }
     printk("K1,tx,link,node=%u,sig=%u,seq=%u,val=%u\n",
            (unsigned)CONFIG_SDV_NODE_ID, signal, seq, value);
+}
+
+static void poll_link_cmd(void)
+{
+    unsigned char c;
+    while (link_uart && uart_poll_in(link_uart, &c) == 0) {
+        if (c != '\n' && cmd_len < (int)sizeof(cmd_buf) - 1) {
+            cmd_buf[cmd_len++] = (char)c;
+            continue;
+        }
+        cmd_buf[cmd_len] = '\0';
+        cmd_len = 0;
+        if (cmd_buf[0] != 'C' || cmd_buf[1] != ',') {
+            continue;
+        }
+        char *p = cmd_buf + 2;
+        /* strtoul = string to unsigned long */
+        unsigned long node = strtoul(p, &p, 10); if (*p++ != ',') continue;
+        unsigned long act  = strtoul(p, &p, 10);
+        if (node != CONFIG_SDV_NODE_ID) {
+            continue;
+        }
+        printk("K1,cmd,node=%lu,action=%lu\n", node, act);
+        if (act == SDV_RESTART) {
+            printk("K1,heal,restart\n");
+            sys_reboot(SYS_REBOOT_COLD);      /* clears .bss -> fault disarms -> healed */
+        }
+    }
 }
 
 static void send_telem(uint8_t signal, uint32_t value)
@@ -101,6 +132,7 @@ int main(void)
     /* #define CONFIG_SDV_NODE_ID 1 */
     k_msleep((CONFIG_SDV_NODE_ID - 1) * STAGGER_MS);
     while (1) {
+        poll_link_cmd();
         int64_t t0 = k_uptime_get();
         bool armed = (sdv_fault_ctl.magic == SDV_FAULT_MAGIC);
 

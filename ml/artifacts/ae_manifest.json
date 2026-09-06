@@ -37,8 +37,8 @@
   ],
   "threshold": 10.254096031188965,
   "threshold_policy": "max(train-normal score) * 1.1",
-  "fp_per_hour_at_threshold": 0.0,
+  "fp_per_hour_at_threshold": 29.12621359223301,
   "train_normal_rows": 1165,
-  "test_faulty_rows": 1217,
+  "test_faulty_rows": 821,
   "calib_rows": 256
 }

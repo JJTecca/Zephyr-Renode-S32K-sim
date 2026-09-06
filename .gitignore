@@ -4,6 +4,7 @@ twister-out*/
 *.elf
 *.hex
 *.bin
+*renode-logs
 
 # Python
 __pycache__/

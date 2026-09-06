@@ -23,6 +23,7 @@
 * ENUMERATIONS
 ***************************************************/
 enum sdv_actions_id {
+    SDV_NONE = 0,
     SDV_RESTART = 1,
     SDV_DEGRADED_MODE = 2,
     SDV_LOAD_SHED = 3,
