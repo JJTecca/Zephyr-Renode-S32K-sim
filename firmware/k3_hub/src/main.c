@@ -26,14 +26,61 @@ static const struct can_filter telem_filter = {
     .flags = 0,
 };
 
-#define AE_WIN   10          /* dataset.py rolling window */
-#define AE_DT_S  0.1f        /* 100 ms tick */
-#define AE_W1    (AE_WIN + 1)
+#define AE_WIN          10          /* dataset.py rolling window */
+#define AE_DT_S         0.1f        /* 100 ms tick */
+#define AE_W1           (AE_WIN + 1)
+#define TTF_GUARD_S    3.0f
 
 static float    hf_hist[AE_W1], ll_hist[AE_W1];
 static uint32_t det_tick;
 static uint32_t latched_hf;
 static bool     have_hf;
+static uint32_t guard_blocks;
+static bool     acting;
+
+static int action_allowed(int action)
+{
+    return action == SDV_RESTART || action == SDV_DEGRADED_MODE || action == SDV_LOAD_SHED;
+}
+
+static void send_cmd_to_k1(int node, int action)
+{
+    char *buff = (char*) malloc(24);
+    int n = snprintk(buff, 24, "C,%d,%d\n", node, action);
+    for (int i = 0; i < n; i++) {
+        uart_poll_out(link_uart, buff[i]);
+    }
+    printk("K3,tx,cmd,node=%d,action=%d\n", node, action);
+}
+
+/* returns approved action, or SDV_NONE if blocked/none */
+static int supervisor_step(int src, int alarm, float ttf, int proposed)
+{
+    /**************************************************
+        1. no alarm so SDV_NONE
+        2. the guard blocks non-whitelist so SDV_NONE
+        3. too early so ttf higher then TTF_GUARD_S 
+        4. already healing bool is true
+    ***************************************************/
+    if (!alarm) return SDV_NONE;
+
+    if (!action_allowed(proposed)) {
+        guard_blocks++;
+        printk("K3,supervisor,block,src=%d,action=%d,reason=whitelist\n", src, proposed);
+        printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
+        return SDV_NONE;
+    }
+    if (proposed == SDV_RESTART && ttf > TTF_GUARD_S) {
+        guard_blocks++;
+        printk("K3,supervisor,block,src=%d,action=RESTART,reason=ttf%.1f\n", src, (double)ttf);
+        printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
+        return SDV_NONE;
+    }
+    if (acting) return SDV_NONE;
+    acting = true;
+    printk("K3,supervisor,approve,src=%d,action=%d,ttf=%.1f\n", src, proposed, (double)ttf);
+    return proposed;
+}
 
 static void dense(const float *w, const float *b, const float *in, float *out,
                   int no, int ni, int relu)
@@ -91,9 +138,19 @@ static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latenc
     int whole = (int)s;
     int milli = (int)((s - (float)whole) * 1000.f);
     printk("K3,score,seq=%u,score=%d.%03d,alarm=%d\n", seq, whole, milli, alarm);
+
+    /* TBD : We will use this logic but not here*/
+    // if (alarm) {
+    //     printk("K3,observer,notify,src=%u,action=%u\n",
+    //            SDV_NODE_POWERTRAIN, SDV_RESTART);
+    // }
     if (alarm) {
-        printk("K3,observer,notify,src=%u,action=%u\n",
-               SDV_NODE_POWERTRAIN, SDV_RESTART);
+        float drain = -hf_slope;
+        float ttf = heap_free / drain;
+        int act = supervisor_step(SDV_NODE_POWERTRAIN, alarm, ttf, SDV_RESTART);
+        if (act != SDV_NONE) {
+            send_cmd_to_k1(SDV_NODE_POWERTRAIN, act);   /* C,1,<action> over lpuart1 */
+        }
     }
 }
 
