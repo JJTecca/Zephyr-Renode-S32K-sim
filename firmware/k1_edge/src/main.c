@@ -27,7 +27,8 @@ static struct sdv_fault_ctl volatile sdv_fault_ctl;
 static char cmd_buf[48];
 static int  cmd_len;
 
-K_HEAP_DEFINE(leak_heap, LEAK_HEAP_SZ);
+static char leak_buf[LEAK_HEAP_SZ] __aligned(8);
+static struct k_heap leak_heap;
 
 static const struct device *can_dev;
 static const struct device *link_uart;   /* inter-node telemetry bus (lpuart1) */
@@ -72,8 +73,11 @@ static void poll_link_cmd(void)
         }
         printk("K1,cmd,node=%lu,action=%lu\n", node, act);
         if (act == SDV_RESTART) {
+            sdv_fault_ctl.magic = 0;
+            busy_accum_us = 0;
+            total_leaked = 0;
+            k_heap_init(&leak_heap, leak_buf, LEAK_HEAP_SZ);
             printk("K1,heal,restart\n");
-            sys_reboot(SYS_REBOOT_COLD);      /* clears .bss -> fault disarms -> healed */
         }
     }
 }
@@ -106,6 +110,7 @@ static void send_telem(uint8_t signal, uint32_t value)
 int main(void)
 {
     printk("K1,boot,node=%d\n", CONFIG_SDV_NODE_ID);
+    k_heap_init(&leak_heap, leak_buf, LEAK_HEAP_SZ);
 
     /* Inter-node link UART (lpuart1): the sim's stand-in bus (ADR-017). */
     link_uart = DEVICE_DT_GET(DT_NODELABEL(lpuart1));

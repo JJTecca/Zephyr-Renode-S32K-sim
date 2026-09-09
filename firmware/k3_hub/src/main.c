@@ -146,6 +146,7 @@ static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latenc
     // }
     if (alarm) {
         float drain = -hf_slope;
+        if (drain < 1e-6f) drain = 1e-6f;
         float ttf = heap_free / drain;
         int act = supervisor_step(SDV_NODE_POWERTRAIN, alarm, ttf, SDV_RESTART);
         if (act != SDV_NONE) {

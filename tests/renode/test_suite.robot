@@ -128,18 +128,18 @@ Leak Propagates To Hub And Raises Alarm
     Wait For Line On Uart    K3,rx,node=1    testerId=${k3}    timeout=30
     Inject Memory Leak    k1_powertrain    256
     Wait For Line On Uart    K3,score,\\S+,alarm=1    testerId=${k3}    treatAsRegex=true    timeout=60
-    Wait For Line On Uart    K3,observer,notify       testerId=${k3}    timeout=60
+    Wait For Line On Uart    K3,supervisor,approve,src=1,action=1    testerId=${k3}    timeout=60
 
 Supervisor Approves A Whitelisted Heal Before OOM
-    [Tags]    sprint3    pending
+    [Tags]    sprint3
     ${k3}    ${k1}=    Boot Two Node Topology
     Load Fault Hooks
     Start Emulation
     Wait For Line On Uart    K3,rx,node=1    testerId=${k3}    timeout=30
     Inject Memory Leak    k1_powertrain    256
     Wait For Line On Uart    K3,score,\\S+,alarm=1                  testerId=${k3}    treatAsRegex=true    timeout=60
-    Wait For Line On Uart    K3,supervisor,approve,action=RESTART    testerId=${k3}    timeout=60
-    Wait For Line On Uart    K3,supervisor,veto_count=[1-9]         testerId=${k3}    treatAsRegex=true    timeout=60
+    Wait For Line On Uart    K3,supervisor,approve,src=1,action=1    testerId=${k3}    timeout=60
+    Wait For Line On Uart    K1,heal,restart                        testerId=${k1}    timeout=60
 
 Generate Campaign Dataset
     [Tags]    campaign
