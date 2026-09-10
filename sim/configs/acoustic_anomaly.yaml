@@ -1,4 +1,9 @@
-# acoustic_anomaly.yaml — DETECT ONLY (no lead-time claim). Will define:
-# MIMII-dataset FFT-band features replayed through the k1_acoustic node
-# (no analytical ttf exists → detection labels only, never a countdown);
-# recovery = flag to HITL. Lowest priority of the four classes.
+node:          k1_acoustic
+signal:        mel_bands
+machine:       valve          # MIMII subset to use (valve/fan/pump/slider)
+snr_db:        6              # MIMII SNR variant
+sample_rate:   16000
+n_mels:        32             # feature-vector width (keep small for int8 on M7)
+frame_ms:      64
+hop_ms:        32
+train_frac:    0.6            # normal clips used for training

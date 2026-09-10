@@ -92,6 +92,15 @@ def load_all(pattern: str, window: int = 10, dt_s: float = 0.1) -> tuple[pd.Data
     wide = pivot_wide(pd.concat(frames, ignore_index=True))
     return add_features(wide, window, dt_s), files
 
+def load_acoustic(pattern: str) -> tuple[pd.DataFrame, list[str]]:
+    """Load wide acoustic CSVs (episode,timestamp,faulty,band_0..band_N) -> (df, feature_cols)."""
+    files = sorted(_glob.glob(pattern))
+    if not files:
+        raise SystemExit(f"no CSVs match {pattern}")
+    df = pd.concat([pd.read_csv(f).assign(episode=i) for i, f in enumerate(files)],
+                   ignore_index=True)
+    feats = [c for c in df.columns if c.startswith("band_")]
+    return df, feats
 
 @dataclass
 class Split:

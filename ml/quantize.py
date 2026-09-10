@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 
-from dataset import FEATURES, load_all, ts_split  # same directory
+from dataset import FEATURES, load_all, ts_split, load_acoustic  # same directory
 
 
 def build_ae(arch: list[int]) -> nn.Sequential:
@@ -57,8 +57,13 @@ def main() -> None:
     ckpt = torch.load(art / "ae.pt", map_location="cpu", weights_only=False)
     manifest = json.loads((art / "ae_manifest.json").read_text())
 
-    feat, _ = load_all(manifest["glob"])
-    split = ts_split(feat, FEATURES)
+    # same comm as in train_ae , diff columns
+    if "acoustic" in manifest["glob"]:
+        feat, features = load_acoustic(manifest["glob"])
+        split = ts_split(feat, features)
+    else:
+        feat, _ = load_all(manifest["glob"])
+        split = ts_split(feat, FEATURES)
 
     ae = build_ae(ckpt["arch"])
     ae.load_state_dict(ckpt["state_dict"])
