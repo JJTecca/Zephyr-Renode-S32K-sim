@@ -27,7 +27,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Emit ae_model.h for the M7 firmware.")
     ap.add_argument("--pt", default="ml/artifacts/ae.pt")
     ap.add_argument("--out", default="firmware/common/ae_model.h")
+    ap.add_argument("--acoustic", action="store_true")
     a = ap.parse_args()
+    if a.acoustic:
+        a.pt, a.out = "ml/artifacts_acoustic/ae.pt", "firmware/common/acoustic_ae_model.h"
 
     ck = torch.load(a.pt, map_location="cpu", weights_only=False)
     sd = ck["state_dict"]

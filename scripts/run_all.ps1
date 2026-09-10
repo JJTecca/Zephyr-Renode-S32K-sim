@@ -5,7 +5,7 @@ $Fault = "acoustic"
 
 if ($Fault -eq "acoustic") {
     Write-Output "Run acoustic anomaly detection and upload datasets"
-    python .\ml\feature_mimii.py --config sim\configs\acoustic_anomaly.yaml --src mimii --out datasets\ --config 50
+    python .\ml\feature_mimii.py --config sim\configs\acoustic_anomaly.yaml --src mimii --out datasets\ --limit 50
     python .\ml\train_ae.py     --acoustic
     python .\ml\quantize.py     --acoustic
     python .\ml\export_model.py --acoustic

@@ -51,7 +51,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="int8 weight PTQ + parity (Sprint 2).")
     ap.add_argument("--art", default="ml/artifacts")
     ap.add_argument("--max-auc-drop", type=float, default=0.02)
+    ap.add_argument("--acoustic", action="store_true")
     a = ap.parse_args()
+    if a.acoustic:
+        a.art = "ml/artifacts_acoustic"
 
     art = Path(a.art)
     ckpt = torch.load(art / "ae.pt", map_location="cpu", weights_only=False)
@@ -59,7 +62,7 @@ def main() -> None:
 
     # same comm as in train_ae , diff columns
     if "acoustic" in manifest["glob"]:
-        feat, features = load_acoustic(manifest["glob"])
+        feat, features, _ = load_acoustic(manifest["glob"])
         split = ts_split(feat, features)
     else:
         feat, _ = load_all(manifest["glob"])

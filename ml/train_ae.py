@@ -90,17 +90,18 @@ def main() -> None:
                     help="threshold = max(train-normal score) * margin (>=1.0)")
     ap.add_argument("--calib-size", type=int, default=256,
                     help="rows saved as the int8 PTQ calibration set")
+    ap.add_argument("--acoustic", action="store_true")
     a = ap.parse_args()
 
-    #load_acoustic differs from load_all because it uses diff columns
-    if "acoustic" in a.glob:
-        feat, features = load_acoustic(a.glob)
-        split = ts_split(feat, features)
+    if a.acoustic:
+        a.glob, a.out = "datasets/acoustic_*.csv", "ml/artifacts_acoustic"
+        feat, features, files = load_acoustic(a.glob)
     else:
         feat, files = load_all(a.glob)
-        split = ts_split(feat, FEATURES)
+        features = FEATURES
+    split = ts_split(feat, features)
 
-    print(f"[data] {len(files)} file(s) | features={FEATURES}")
+    print(f"[data] {len(files)} file(s) | features={len(features)}")
     print(f"[data] train-normal={len(split.Xtr_normal)} | "
           f"test={len(split.Xte)} (faulty={int(split.yte.sum())})")
 
@@ -130,7 +131,7 @@ def main() -> None:
         {
             "state_dict": ae.state_dict(),
             "arch": [split.Xtr_normal.shape[1], 8, 3, 8, split.Xtr_normal.shape[1]],
-            "features": FEATURES,
+            "features": features,
             "scaler_mu": split.mu.tolist(),   # int8 model MUST use identical scaling
             "scaler_sd": split.sd.tolist(),
             "threshold": thr,
@@ -144,7 +145,7 @@ def main() -> None:
         "seed": a.seed,
         "epochs": a.epochs,
         "noise": a.noise,
-        "features": FEATURES,
+        "features": features,
         "scaler_mu": split.mu.tolist(),
         "scaler_sd": split.sd.tolist(),
         "threshold": thr,
