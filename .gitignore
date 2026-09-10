@@ -1,10 +1,10 @@
-# Zephyr / west build outputs and workspace neighbours
 build*/
 twister-out*/
 *.elf
 *.hex
 *.bin
 *renode-logs
+*mimii
 
 # Python
 __pycache__/

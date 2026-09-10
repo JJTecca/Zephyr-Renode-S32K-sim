@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from dataset import FEATURES, Split, load_all, ts_split  # same directory
+from dataset import FEATURES, Split, load_all, ts_split, load_acoustic  # same directory
 
 TICK_HZ: float = 10.0  # convert FP count to per-hour
 
@@ -92,8 +92,14 @@ def main() -> None:
                     help="rows saved as the int8 PTQ calibration set")
     a = ap.parse_args()
 
-    feat, files = load_all(a.glob)
-    split = ts_split(feat, FEATURES)
+    #load_acoustic differs from load_all because it uses diff columns
+    if "acoustic" in a.glob:
+        feat, features = load_acoustic(a.glob)
+        split = ts_split(feat, features)
+    else:
+        feat, files = load_all(a.glob)
+        split = ts_split(feat, FEATURES)
+
     print(f"[data] {len(files)} file(s) | features={FEATURES}")
     print(f"[data] train-normal={len(split.Xtr_normal)} | "
           f"test={len(split.Xte)} (faulty={int(split.yte.sum())})")
