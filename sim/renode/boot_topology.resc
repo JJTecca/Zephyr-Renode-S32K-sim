@@ -49,8 +49,10 @@ showAnalyzer sysbus.lpuart2
 emulation SetGlobalQuantum "0.000025"
 emulation SetGlobalSerialExecution True
 
-# capture the powertrain (node 1) console -> the log the ML campaign parses
+# Create one backend file for k1 and one for k3
 mach set "k1_powertrain"
 sysbus.lpuart2 CreateFileBackend @D:/zephyr-ws/Zephyr-Renode-S32K-sim/k1_telem.log
+mach set "k3_hub"
+sysbus.lpuart2 CreateFileBackend @D:/zephyr-ws/Zephyr-Renode-S32K-sim/k3_hub.log
 
 start
