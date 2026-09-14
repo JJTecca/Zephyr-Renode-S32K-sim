@@ -11,8 +11,9 @@ if ($Fault -eq "acoustic") {
     python .\ml\export_model.py --acoustic
     Pause
     return
+} else {
+    Set-Location $PSScriptRoot
 }
-
 Write-Output "Starting to compile project and generating .elf files K1 & K3"
 ./s32k1k3_build_os.ps1
 Start-Sleep -Seconds 3
@@ -25,6 +26,7 @@ Write-Output "Paste the following :"
 Write-Output "Clear
     i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/boot_topology.resc
     i @D:/zephyr-ws/Zephyr-Renode-S32K-sim/sim/renode/fault_hooks.py
+    mach set k1_powertrain
     $inject
     Clear"
 
@@ -42,6 +44,13 @@ if ($Fault -eq "memory_leak") {
 } else {
     python sim\run_campaign.py --log D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log --fault $Fault
 }
+
+$seed = 1
+$stem = "$($Fault)_256_seed$seed"
+New-Item -ItemType Directory -Force -Path evidence\campaign | Out-Null
+Copy-Item D:\zephyr-ws\Zephyr-Renode-S32K-sim\k1_telem.log "evidence\campaign\${stem}_k1.log"
+Copy-Item D:\zephyr-ws\Zephyr-Renode-S32K-sim\k3_hub.log   "evidence\campaign\${stem}_k3.log"
+python ml\metrics.py --campaign evidence\campaign
 
 Start-Sleep -Seconds 2
 
