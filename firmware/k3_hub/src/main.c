@@ -45,6 +45,7 @@ static int action_allowed(int action)
 
 static void send_cmd_to_k1(int node, int action)
 {
+    /* TBD: let it be here for now */
     char *buff = (char*) malloc(24);
     int n = snprintk(buff, 24, "C,%d,%d\n", node, action);
     for (int i = 0; i < n; i++) {
@@ -151,10 +152,10 @@ static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latenc
         int act = supervisor_step(SDV_NODE_POWERTRAIN, alarm, ttf, SDV_RESTART);
         if (act != SDV_NONE) {
             send_cmd_to_k1(SDV_NODE_POWERTRAIN, act);   /* C,1,<action> over lpuart1 */
-        } else { /* incident cleared */
+        }
+    } else { /* incident cleared */
             acting = false;
             printk("K3,supervisor,rearm\n");
-        }
     }
 }
 

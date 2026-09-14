@@ -5,6 +5,7 @@ twister-out*/
 *.bin
 *renode-logs
 *mimii
+*vault
 
 # Python
 __pycache__/
