@@ -1,0 +1,6 @@
+board:
+  name: s32k344mini
+  full_name: S32K344MINI-EVB (FRDM-A-S32K344)
+  vendor: nxp
+  socs:
+    - name: s32k344

@@ -1,0 +1,26 @@
+# Copyright (c) 2026 Maior Cristian-Alexandru
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_S32K344MINI
+
+if SERIAL
+
+config UART_CONSOLE
+	default y
+
+endif # SERIAL
+
+if SPI
+
+config SPI_INIT_PRIORITY
+	default 50
+
+if WDT_NXP_FS26
+
+config WDT_NXP_FS26_INIT_PRIORITY
+	default 51
+
+endif # WDT_NXP_FS26
+endif # SPI
+
+endif # BOARD_S32K344MINI
