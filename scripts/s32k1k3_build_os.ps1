@@ -1,3 +1,4 @@
+Write-Output "Warning: target is the Renode simulator, not the real boards"
 Write-Output "Build for K1 & K3 boards starting up..."
 Write-Output "[$env:ZEPHYR_BASE]"
 Write-Output "Checking for the path to the CMake zephyr_default configuraiton"
