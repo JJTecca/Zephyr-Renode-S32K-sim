@@ -1,5 +1,5 @@
 Write-Output "Real silicon board build: no Renode simulation, switch to the other ps1"
-Write-Output "Build for S32K144EVB-Q100 (K1 edge, Cortex-M4F) starting up..."
+Write-Output "Build for S32K144EVB-Q100 starting up..."
 cd D:\zephyr-ws
 .\.venv\Scripts\Activate.ps1
 west zephyr-export
