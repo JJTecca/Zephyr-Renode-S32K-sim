@@ -1,0 +1,9 @@
+# Copyright (c) 2026 Maior Cristian-Alexandru
+# SPDX-License-Identifier: Apache-2.0
+
+# hal_nxp ships no s32k144 SoC/MCUX build glue, only the header. The S32K144 is
+# the same die family as the S32K146 (less flash/RAM), so build against the K146
+# HAL; the board .dts constrains flash/SRAM to real K144 sizes.
+config BOARD_S32K144EVB
+	select SOC_S32K146
+	select SOC_PART_NUMBER_FS32K146UAT0VLHT
