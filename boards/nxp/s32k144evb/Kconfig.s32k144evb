@@ -1,0 +1,6 @@
+# Copyright (c) 2026 Maior Cristian-Alexandru
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_S32K144EVB
+	select SOC_S32K144
+	select SOC_PART_NUMBER_FS32K144HAT0MLLT
