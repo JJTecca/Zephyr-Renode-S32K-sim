@@ -1,6 +1,29 @@
-/* ADR-017: enable lpuart1 as the inter-node telemetry bus (Renode UART hub
- * stands in for CAN FD in simulation). lpuart2 stays the console. */
-&lpuart1 {
-    status = "okay";
-    current-speed = <115200>;
+/* Overwrite needed */
+#include <nxp/s32/S32K344-172MQFP-pinctrl.h>
+
+&pinctrl {
+	lpuart6_default: lpuart6_default {
+		group1 {
+			pinmux = <PTA16_LPUART6_TX_O>;
+			output-enable;
+		};
+		group2 {
+			pinmux = <PTA15_LPUART6_RX>;
+			input-enable;
+		};
+	};
+};
+
+&lpuart6 {
+	pinctrl-0 = <&lpuart6_default>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+/ {
+	chosen {
+		zephyr,console = &lpuart6;
+		zephyr,shell-uart = &lpuart6;
+	};
 };
