@@ -1,6 +1,11 @@
 /* Overwrite needed */
 #include <nxp/s32/S32K344-172MQFP-pinctrl.h>
 
+&lpuart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
 &pinctrl {
 	lpuart6_default: lpuart6_default {
 		group1 {
