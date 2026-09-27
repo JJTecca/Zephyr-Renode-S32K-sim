@@ -1,7 +1,7 @@
 Write-Output "Working at " $PSScriptRoot
 Set-Location (Split-Path $PSScriptRoot -Parent)
 & "D:\zephyr-ws\.venv\Scripts\Activate.ps1"
-$Fault = "acoustic"
+$Fault = "memory_leak"
 
 if ($Fault -eq "acoustic") {
     Write-Output "Run acoustic anomaly detection and upload datasets"
