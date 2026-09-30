@@ -11,7 +11,7 @@ try {
     $c = $c -replace '16000000U','40000000U' -replace '2U,(\s*/\* predivider \*/)','5U,$1'
     Set-Content $hal $c -NoNewline
 
-    west build -b s32k344mini firmware\k3_hub -d build\k3_tbox -p always -- -DBOARD_ROOT=D:/zephyr-ws/Zephyr-Renode-S32K-sim
+    west build -b s32k344mini firmware\can_loopback_test -d build\k3_loopback_tbox -p always -- -DBOARD_ROOT="D:/zephyr-ws/Zephyr-Renode-S32K-sim"
 }
 finally {
     git -C $haldir checkout -- soc/s32k344/src/Clock_Ip_Cfg.c   # restore pristine vendor file
