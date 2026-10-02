@@ -13,7 +13,7 @@ try {
     Set-Content $hal $c -NoNewline
 
     # T-box = CAN receiver (center) on CAN3 / flexcan3, semihosting console.
-    west build -b s32k344mini firmware\k3_silicon -d build\k3_silicon -p always -- -DBOARD_ROOT="D:/zephyr-ws/Zephyr-Renode-S32K-sim" -DEXTRA_DTC_OVERLAY_FILE=tbox.overlay -DEXTRA_CONF_FILE=tbox.conf -DROLE_EDGE=0
+    west build -b s32k344mini firmware\k3_silicon -d build\k3_silicon -p always -- -DBOARD_ROOT="D:/zephyr-ws/Zephyr-Renode-S32K-sim" -DNODE=tbox -DROLE_EDGE=0
 }
 finally {
     git -C $haldir checkout -- soc/s32k344/src/Clock_Ip_Cfg.c   # restore pristine vendor file
