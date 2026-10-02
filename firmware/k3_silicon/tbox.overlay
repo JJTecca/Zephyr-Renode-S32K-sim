@@ -1,0 +1,14 @@
+/* S32K3-T-BOX (RM00276): inter-node bus = CAN3 on J33 pin6/16, flexcan3
+ * (PTC28/PTC29), 125 kbit/s. CAN PHY held in normal mode by J47/J48/J23,
+ * so no GPIO transceiver is driven (phys removed). */
+/ {
+	chosen {
+		zephyr,canbus = &flexcan3;
+	};
+};
+
+&flexcan3 {
+	/delete-property/ phys;
+	bitrate = <125000>;
+	status = "okay";
+};

@@ -1,9 +1,10 @@
 /*****************************************************************************
 * File:        main.c
-* Description: T-box real-silicon CAN bring-up node -- NORMAL-mode FlexCAN over
-*              the chosen canbus (CAN3 on the T-box, J33). ROLE_EDGE selects the
-*              sender (1) or the receiver (0); both roles exchange sdv_telem_frame.
-* Layer:       firmware/k3_tbox_silicon  (real-silicon 2-node CAN bench)
+* Description: Real-silicon CAN bring-up node, shared by both boards. NORMAL-mode
+*              FlexCAN over the chosen canbus; ROLE_EDGE picks sender (1) or
+*              receiver (0). Per-board overlay+conf give the pins and console
+*              (frdma.* = FRDM-A flexcan0/J15, tbox.* = T-box CAN3/flexcan3).
+* Layer:       firmware/k3_silicon  (real-silicon 2-node CAN bench)
 * Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing
 * Copyright (c) 2026 Maior Cristian-Alexandru
 *****************************************************************************/
@@ -34,7 +35,11 @@ int main(void)
         return -1;
     }
 
-    can_start(can_dev);
+    int ret = can_start(can_dev);
+    if (ret != 0 && ret != -EALREADY) {
+        printk("2BOARD,can,start_err=%d\n", ret);
+        return -1;
+    }
     can_add_rx_filter_msgq(can_dev, &rx_msgq, &telem_filter);
     printk("2BOARD,can,ok\n");
 
