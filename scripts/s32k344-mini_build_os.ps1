@@ -5,6 +5,6 @@ cd D:\zephyr-ws
 west zephyr-export
 cd Zephyr-Renode-S32K-sim
 Remove-Item -Recurse -Force build\k3_mini -ErrorAction SilentlyContinue
-west build -b s32k344mini firmware\k3_hub -d build\k3_mini -p always -- -DBOARD_ROOT=D:/zephyr-ws/Zephyr-Renode-S32K-sim
+west build -b s32k344mini .\firmware\can_loopback_test -d build\k3_mini -p always -- -DBOARD_ROOT=D:/zephyr-ws/Zephyr-Renode-S32K-sim
 
 Pause
