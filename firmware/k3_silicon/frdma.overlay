@@ -1,34 +1,5 @@
-/* FRDM-A-S32K344 (UM12406): console = OpenSDA VCOM on LPUART6 (PTA15/PTA16);
- * CAN0 via TJA1043 on J15, EN=PTC21 / STB=PTC20, 125 kbit/s. */
-#include <nxp/s32/S32K344-172MQFP-pinctrl.h>
-
-/ {
-	chosen {
-		zephyr,console = &lpuart6;
-		zephyr,shell-uart = &lpuart6;
-	};
-};
-
-&pinctrl {
-	lpuart6_default: lpuart6_default {
-		group1 {
-			pinmux = <PTA16_LPUART6_TX_O>;
-			output-enable;
-		};
-		group2 {
-			pinmux = <PTA15_LPUART6_RX>;
-			input-enable;
-		};
-	};
-};
-
-&lpuart6 {
-	pinctrl-0 = <&lpuart6_default>;
-	pinctrl-names = "default";
-	current-speed = <115200>;
-	status = "okay";
-};
-
+/* FRDM-A-S32K344 (UM12406): CAN0 via TJA1043 on J15, EN=PTC21 / STB=PTC20,
+ * 125 kbit/s. Console is S32DS semihosting (see frdma.conf). */
 &can_phy0 {
 	enable-gpios  = <&gpioc_h 5 GPIO_ACTIVE_HIGH>;   /* PTC21 = CAN0_EN  */
 	standby-gpios = <&gpioc_h 4 GPIO_ACTIVE_LOW>;    /* PTC20 = CAN0_STB */
