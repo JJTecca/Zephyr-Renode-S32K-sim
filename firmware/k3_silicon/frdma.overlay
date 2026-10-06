@@ -1,5 +1,5 @@
-/* FRDM-A-S32K344 (UM12406): console = OpenSDA VCOM on LPUART6 (PTA15/PTA16);
- * CAN0 via TJA1043 on J15, EN=PTC21 / STB=PTC20, 125 kbit/s. */
+/* FRDM-A-S32K344 (UM12406): TJA1043 on CAN0/J15. Verified pins:
+ * CAN0_EN=PTC21, CAN0_STB=PTC20. Console = LPUART6 VCOM. 125 kbit/s. */
 #include <nxp/s32/S32K344-172MQFP-pinctrl.h>
 
 / {
@@ -11,14 +11,8 @@
 
 &pinctrl {
 	lpuart6_default: lpuart6_default {
-		group1 {
-			pinmux = <PTA16_LPUART6_TX_O>;
-			output-enable;
-		};
-		group2 {
-			pinmux = <PTA15_LPUART6_RX>;
-			input-enable;
-		};
+		group1 { pinmux = <PTA16_LPUART6_TX_O>; output-enable; };
+		group2 { pinmux = <PTA15_LPUART6_RX>;  input-enable;  };
 	};
 };
 

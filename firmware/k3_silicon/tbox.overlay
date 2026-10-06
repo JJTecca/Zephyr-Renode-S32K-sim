@@ -1,14 +1,18 @@
-/* S32K3-T-BOX (RM00276): inter-node bus = CAN3 on J33 pin6/16, flexcan3
- * (PTC28/PTC29), 125 kbit/s. CAN PHY held in normal mode by J47/J48/J23,
- * so no GPIO transceiver is driven (phys removed). */
+/* S32K3-T-BOX (SCH-50735): CAN3 = flexcan3 (PTC28/PTC29) -> TJA1463 (U17).
+ * Verified: EN(pin6)=CANEF_EN=PTB11. STB(pin14) held high by board R226 pull-up,
+ * so it is NOT driven here. Override the board's wrong default EN/STB pins. */
 / {
 	chosen {
 		zephyr,canbus = &flexcan3;
 	};
 };
 
+&can_phy3 {
+	/delete-property/ standby-gpios;                 /* board default (PTB1) is wrong here; STB = R226 pull-up */
+	enable-gpios = <&gpiob_l 11 GPIO_ACTIVE_HIGH>;   /* PTB11 = CANEF_EN (TJA1463 EN) */
+};
+
 &flexcan3 {
-	/delete-property/ phys;
 	bitrate = <125000>;
 	status = "okay";
 };
