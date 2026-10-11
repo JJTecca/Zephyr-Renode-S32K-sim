@@ -1,7 +1,4 @@
 cmake_minimum_required(VERSION 3.20.0)
-
-# Per-board selector (both target s32k344mini): -DNODE=frdma (FRDM-A, flexcan0,
-# LPUART6) or -DNODE=tbox (T-box, flexcan3/CAN3, semihosting).
 if(NOT DEFINED NODE)
   set(NODE "frdma")
 endif()
