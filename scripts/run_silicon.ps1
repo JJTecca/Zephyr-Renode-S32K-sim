@@ -62,12 +62,12 @@ Stop-Process $pE,$pC -ErrorAction SilentlyContinue
 
 # 5. same ML pipeline as Renode, on the silicon logs (identical TELEM schema)
 if ($Fault -eq "memory_leak") {
-    python sim\run_campaign.py --log evidence\silicon\${stem}_edge.log --fault $Fault --rate 256
+    python sim\run_campaign.py --log evidence\silicon\${stem}_edge.log --fault $Fault --rate 256 --outdir datasets/silicon
 } else {
-    python sim\run_campaign.py --log evidence\silicon\${stem}_edge.log --fault $Fault
+    python sim\run_campaign.py --log evidence\silicon\${stem}_edge.log --fault $Fault --outdir datasets/silicon
 }
-python ml\dataset.py   --glob "datasets/$($Fault)_*.csv"
-python ml\baseline.py  --glob "datasets/$($Fault)_*.csv"
-if ($Fault -eq "memory_leak") { python ml\predictor.py --glob "datasets/memory_leak_*.csv" }
+python ml\dataset.py   --glob "datasets/silicon/$($Fault)_*.csv"
+python ml\baseline.py  --glob "datasets/silicon/$($Fault)_*.csv"
+if ($Fault -eq "memory_leak") { python ml\predictor.py --glob "datasets/silicon/memory_leak_*.csv" }
 python ml\metrics.py --campaign evidence\silicon
 Pause

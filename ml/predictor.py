@@ -81,7 +81,7 @@ def plot_predictions(yte, analytic_hat, linreg_hat) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--glob", default="datasets/memory_leak_*.csv")
+    ap.add_argument("--glob", default="datasets/sim/memory_leak_*.csv")
     a = ap.parse_args()
     feat, files = load_all(a.glob)          # from dataset.py — same as baseline
     print("cols:", list(feat.columns))

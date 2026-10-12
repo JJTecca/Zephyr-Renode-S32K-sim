@@ -35,7 +35,7 @@ def main():
     ap = argparse.ArgumentParser(description="MIMII wav -> per-clip mel-band CSVs for the acoustic AE.")
     ap.add_argument("--config", default=str(REPO / "sim/configs/acoustic_anomaly.yaml"))
     ap.add_argument("--src", required=True, help="MIMII root")
-    ap.add_argument("--out", default=str(REPO / "datasets"))
+    ap.add_argument("--out", default=str(REPO / "datasets" / "sim"))
     ap.add_argument("--limit", type=int, default=0, help="max clips per class (0 = all)")
     a = ap.parse_args()
 

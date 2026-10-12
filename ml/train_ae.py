@@ -80,7 +80,7 @@ def fpr_per_hour(scores_normal: np.ndarray, thr: float) -> float:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Train + persist the denoising AE for Sprint 2.")
-    ap.add_argument("--glob", default="datasets/memory_leak_*.csv")
+    ap.add_argument("--glob", default="datasets/sim/memory_leak_*.csv")
     ap.add_argument("--out", default="ml/artifacts", help="artifact directory")
     ap.add_argument("--epochs", type=int, default=300)
     ap.add_argument("--noise", type=float, default=0.1)
@@ -94,7 +94,7 @@ def main() -> None:
     a = ap.parse_args()
 
     if a.acoustic:
-        a.glob, a.out = "datasets/acoustic_*.csv", "ml/artifacts_acoustic"
+        a.glob, a.out = "datasets/sim/acoustic_*.csv", "ml/artifacts_acoustic"
         feat, features, files = load_acoustic(a.glob)
     else:
         feat, files = load_all(a.glob)

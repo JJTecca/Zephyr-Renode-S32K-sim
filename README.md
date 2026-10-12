@@ -115,7 +115,7 @@ Zephyr shell (`uart:~$`). The `Unhandled write to ...` warnings are expected
 | `scripts/s32k1k3_build_os.ps1` | Builds the K3 hub + 4×K1 ELFs |
 | `scripts/renode_open.py` | Launches the Renode GUI (Windows) |
 | `tests/renode/*.robot` | Renode Robot-Framework tests (see `tests/renode/README`) |
-| `datasets/*.csv` | Generated labelled telemetry datasets |
+| `datasets/sim/*.csv` | Generated labelled telemetry datasets |
 | `documents/` | Thesis scope (thematic plan, chapter structure) + roadmaps |
 | `docs/` | Architecture overview, simulation coverage, code style |
 | `evidence/` | Captured plots (heap drain per leak rate) |

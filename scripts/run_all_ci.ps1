@@ -47,9 +47,9 @@ foreach ($cls in $Classes) {
 }
 
 Write-Output "`nDatasets in /datasets:"
-Get-ChildItem "$repo\datasets\*.csv" | Select-Object Name
+Get-ChildItem "$repo\datasets\sim\*.csv" | Select-Object Name
 
 Write-Output "`nML over the campaign:"
-python "$repo\ml\dataset.py"   --glob "datasets/memory_leak_*.csv"
-python "$repo\ml\baseline.py"  --glob "datasets/memory_leak_*.csv"
-python "$repo\ml\predictor.py" --glob "datasets/memory_leak_*.csv"
+python "$repo\ml\dataset.py"   --glob "datasets/sim/memory_leak_*.csv"
+python "$repo\ml\baseline.py"  --glob "datasets/sim/memory_leak_*.csv"
+python "$repo\ml\predictor.py" --glob "datasets/sim/memory_leak_*.csv"

@@ -147,7 +147,7 @@ def ts_split(feat: pd.DataFrame, features: list[str] = FEATURES,
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("--glob", default="datasets/*.csv")
+    ap.add_argument("--glob", default="datasets/sim/*.csv")
     a = ap.parse_args()
     feat, files = load_all(a.glob)
     print(f"[dataset] {len(files)} file(s), {len(feat)} timestamps, "

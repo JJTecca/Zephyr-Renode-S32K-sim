@@ -94,7 +94,7 @@ def report(name: str, split: Split, s_tr: np.ndarray, s_te: np.ndarray) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--glob", default="datasets/memory_leak_*.csv")
+    ap.add_argument("--glob", default="datasets/sim/memory_leak_*.csv")
     ap.add_argument("--epochs", type=int, default=300)
     a = ap.parse_args()
 

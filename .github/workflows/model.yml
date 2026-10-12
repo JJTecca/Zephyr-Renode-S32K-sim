@@ -28,7 +28,7 @@ jobs:
           pip install pandas scikit-learn torch matplotlib
       - name: Predict / train / quantize / export
         run: |
-          python ml/predictor.py --glob "datasets/memory_leak_*.csv"
+          python ml/predictor.py --glob "datasets/sim/memory_leak_*.csv"
           python ml/train_ae.py
           python ml/quantize.py
           python ml/export_model.py

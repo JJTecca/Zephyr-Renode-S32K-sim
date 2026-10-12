@@ -2,7 +2,7 @@
 
 *A single real example carried through every function in the pipeline, with the actual
 numbers. Data-shaping stages use one captured K1 log (2103 `TELEM` lines, leak rate
-128 → 1280 B/s); the ML stages use all 12 `datasets/memory_leak_*.csv`. The point is to
+128 → 1280 B/s); the ML stages use all 12 `datasets/sim/memory_leak_*.csv`. The point is to
 see the calculation behind each function, not just its name.*
 
 **The thread we follow:** a `heap_free = 7976` tick → labelled `faulty, true_ttf 6.231`

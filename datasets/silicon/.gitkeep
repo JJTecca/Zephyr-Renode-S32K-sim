@@ -1,0 +1,2 @@
+# Real-silicon telemetry captures land here (run_silicon.ps1 -> run_campaign.py --outdir datasets/silicon).
+# Renode-sim captures go to datasets/sim/.

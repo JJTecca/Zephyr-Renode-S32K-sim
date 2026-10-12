@@ -5,7 +5,7 @@ $Fault = "memory_leak"
 
 if ($Fault -eq "acoustic") {
     Write-Output "Run acoustic anomaly detection and upload datasets"
-    python .\ml\feature_mimii.py --config sim\configs\acoustic_anomaly.yaml --src mimii --out datasets\ --limit 50
+    python .\ml\feature_mimii.py --config sim\configs\acoustic_anomaly.yaml --src mimii --out datasets\sim --limit 50
     python .\ml\train_ae.py     --acoustic
     python .\ml\quantize.py     --acoustic
     python .\ml\export_model.py --acoustic
@@ -55,12 +55,12 @@ python ml\metrics.py --campaign evidence\campaign
 Start-Sleep -Seconds 2
 
 Write-Output "Running IsoForest alg & generating .csv file"
-python ml\dataset.py --glob "datasets/$($Fault)_*.csv"
-python ml\baseline.py --glob "datasets/$($Fault)_*.csv"
+python ml\dataset.py --glob "datasets/sim/$($Fault)_*.csv"
+python ml\baseline.py --glob "datasets/sim/$($Fault)_*.csv"
 
 if($Fault -eq "memory_leak") {
     Write-Output "Predicting how much time left for K1 to run OOM and crash"
-    python ml\predictor.py --glob "datasets/memory_leak_*.csv"
+    python ml\predictor.py --glob "datasets/sim/memory_leak_*.csv"
 }
 
 Write-Output "Re-run the .csv existing files & generate manifest again"

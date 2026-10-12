@@ -88,6 +88,8 @@ def main():
                     help="uptime(ms) the fault was injected; omit to auto-detect")
     ap.add_argument("--seed", type=int, default=42, help="tag only (filename)")
     ap.add_argument("--rate", type=int, default=None, help="different leak rates AS TESTING")
+    ap.add_argument("--outdir", default="datasets/sim",
+                    help="dataset folder: datasets/sim (Renode) or datasets/silicon (boards)")
     args = ap.parse_args()
 
     spec = FAULTS[args.fault]
@@ -103,10 +105,11 @@ def main():
     inject_ms = find_inject_ms(rows, args.inject_ms, spec["onset_sig"])
 
     # Create logs dataset directory at paste the output there found in the UART
-    (REPO / "datasets").mkdir(exist_ok=True)
+    outdir = REPO / args.outdir
+    outdir.mkdir(parents=True, exist_ok=True)
     # Find a proper file name for the csv i.e "memory_leak_128_seed42.csv"
     strength = cfg.get(spec["strength"], "x")
-    out_csv = str(REPO / "datasets" / f"{args.fault}_{strength}_seed{args.seed}.csv")
+    out_csv = str(outdir / f"{args.fault}_{strength}_seed{args.seed}.csv")
 
     # we have the option to auto detect or to give args for ms interval
     n = label(rows, inject_ms, rate_per_s, spec["ttf_sig"], out_csv)

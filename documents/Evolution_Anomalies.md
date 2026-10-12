@@ -1,6 +1,6 @@
 # Anomaly Data Evolution — Raw UART to ML Result, End to End
 
-*How a row of raw UART text becomes an ML result, for both fault classes, following the exact pipeline the campaign runs. Numbers below are from the current dataset (`datasets/*.csv`).*
+*How a row of raw UART text becomes an ML result, for both fault classes, following the exact pipeline the campaign runs. Numbers below are from the current dataset (`datasets/sim/*.csv`).*
 
 The one idea to hold onto the whole way:
 
@@ -264,7 +264,7 @@ The alarm line sits just above the single worst-behaving *normal* row, so no leg
 UART log
    │  run_campaign.py            label → true_ttf (leak) + faulty
    ▼
-datasets/*.csv (long)
+datasets/sim/*.csv (long)
    │  dataset.py                 pivot_wide → add_features (slopes) → z-score
    ▼
 feature table  ─────────────┬───────────────┬──────────────────────────
