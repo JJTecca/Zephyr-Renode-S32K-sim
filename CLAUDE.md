@@ -13,8 +13,8 @@ ONLY when the owner asks for it in that request — no feature branches, no side
 branch-satisfying pushes for stop-hooks.
 
 ## RULE 1 — before an owner-asked PR, satisfy every .github/workflows/*.yml
-Re-read the yml; don't guess. Gates: pr-title-check — title `^\[(FEATURE|BUG|HOTFIX|DOCS|REFACTOR|
-TEST|CHORE)\]\s.+`, ≤40 chars. ci.yml — builds firmware + Renode robot test. Owner-authorised
+Re-read the yml; don't guess. Gates: pr-title-check — title `^\[(FEATURE|BUG|HOTFIX|DOCS|ML|AI|
+CORE|CD|CI)\]\s.+` (case-insensitive), ≤40 chars. ci.yml — builds firmware + Renode robot test. Owner-authorised
 pushes to `main` bypass CI.
 
 ## RULE 2 — the roadmaps are mandated reading (MUST)
