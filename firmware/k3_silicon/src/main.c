@@ -12,7 +12,7 @@
 #endif
 
 #define TICK_MS      100
-#define LEAK_HEAP_SZ 8192
+#define LEAK_HEAP_SZ 65536
 #define BUSY_CAP_US  500000u
 
 static const struct device *can_dev;
@@ -43,13 +43,15 @@ static uint16_t seq;
 static uint32_t busy_accum_us;
 static size_t   total_leaked;
 
+static void tx_cb(const struct device *dev, int err, void *arg) { ARG_UNUSED(dev); ARG_UNUSED(err); ARG_UNUSED(arg); }
+
 static void send_telem(uint8_t sig, uint32_t val)
 {
 	printk("TELEM,%lld,%u,%u,%u,%u\n", k_uptime_get(), (unsigned)SDV_NODE, sig, seq, val);
 	struct sdv_telem_frame tf = { .node = SDV_NODE, .signal = sig, .seq = seq, .value = val };
 	struct can_frame f = { .id = SDV_CAN_BASE_ID | SDV_NODE, .dlc = sizeof(tf), .flags = 0 };
 	memcpy(f.data, &tf, sizeof(tf));
-	can_send(can_dev, &f, K_MSEC(50), NULL, NULL);
+	can_send(can_dev, &f, K_NO_WAIT, tx_cb, NULL);
 	seq++;
 }
 #endif
