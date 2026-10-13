@@ -34,12 +34,16 @@ Write-Output "Steps: "
 # 0. flash both boards headless (pegdbserver + gdb load); -singlesession auto-exits each
 $srvC = Start-Process $PeServer -ArgumentList $CenterSrv -PassThru -WorkingDirectory $PeDir
 Start-Sleep 3
-& $Gdb $CenterElf -batch -ex "set tcp auto-retry on" -ex "set tcp connect-timeout 240" -ex "target remote :7324" -ex "load" -ex "monitor reset" -ex "detach" -ex "quit"
+& $Gdb $CenterElf -batch `
+  -ex "set tcp auto-retry on" -ex "set tcp connect-timeout 240" `
+  -ex "target remote :7324" -ex "load" -ex "monitor reset" -ex "detach" -ex "quit"
 Stop-Process $srvC -ErrorAction SilentlyContinue
 
 $srvE = Start-Process $PeServer -ArgumentList $EdgeSrv -PassThru -WorkingDirectory $PeDir
 Start-Sleep 3
-& $Gdb $EdgeElf -batch -ex "set tcp auto-retry on" -ex "set tcp connect-timeout 240" -ex "target remote :7224" -ex "load" -ex "monitor reset" -ex "detach" -ex "quit"
+& $Gdb $EdgeElf -batch `
+  -ex "set tcp auto-retry on" -ex "set tcp connect-timeout 240" `
+  -ex "target remote :7224" -ex "load" -ex "monitor reset" -ex "detach" -ex "quit"
 Stop-Process $srvE -ErrorAction SilentlyContinue
 
 # 1. open both PuTTY consoles WITH logging (you watch them live + they capture)
