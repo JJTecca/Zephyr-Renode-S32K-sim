@@ -74,4 +74,7 @@ python ml\dataset.py   --glob "datasets/silicon/$($Fault)_*.csv"
 python ml\baseline.py  --glob "datasets/silicon/$($Fault)_*.csv"
 if ($Fault -eq "memory_leak") { python ml\predictor.py --glob "datasets/silicon/memory_leak_*.csv" }
 python ml\metrics.py --campaign evidence\silicon
+python ml\train_ae.py     --glob "datasets/silicon/$($Fault)_*.csv"
+python ml\quantize.py
+python ml\export_model.py # writes firmware
 Pause
