@@ -45,6 +45,8 @@ static size_t   total_leaked;
 static bool     degraded;
 static void tx_cb(const struct device *dev, int err, void *arg) { ARG_UNUSED(dev); ARG_UNUSED(err); ARG_UNUSED(arg); }
 
+static void tx_cb(const struct device *dev, int err, void *arg) { ARG_UNUSED(dev); ARG_UNUSED(err); ARG_UNUSED(arg); }
+
 static void send_telem(uint8_t sig, uint32_t val)
 {
 	printk("TELEM,%lld,%u,%u,%u,%u\n", k_uptime_get(), (unsigned)SDV_NODE, sig, seq, val);

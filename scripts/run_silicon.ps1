@@ -14,8 +14,8 @@ $EdgeSrv    = "-device=NXP_S32K3xx_S32K344 -startserver -singlesession -serverpo
 $CenterSrv  = "-device=NXP_S32K3xx_S32K344 -startserver -singlesession -serverport=7324 -gdbmiport=6324 -interface=USBMULTILINK -speed=5000 -port=$CenterPort -usecyclonerelays=1 -currentalgorithmindex=0 -streamingport=10324 -javalinkport=59519"
 $EdgeElf    = "build\frdma_edge\zephyr\zephyr.elf"
 $CenterElf  = "build\frdma_center\zephyr\zephyr.elf"
-$ComEdge    = "COM7"   # sender
-$ComCenter  = "COM4"   # receiver
+$ComEdge    = "COM4"   # sender   (edge console; verify via 2BOARD,boot,role=edge)
+$ComCenter  = "COM7"   # receiver (center console)
 $Putty      = "C:\Program Files\PuTTY\putty.exe"
 $stem       = "$($Fault)_256_seed1"
 New-Item -ItemType Directory -Force -Path evidence\silicon | Out-Null
