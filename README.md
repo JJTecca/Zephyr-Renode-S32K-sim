@@ -9,7 +9,8 @@ produce the project's own telemetry datasets.
 
 For architecture, fault classes and the hardware plan see
 [`docs/overview.md`](docs/overview.md); for verified platform facts see
-[`docs/simulation-coverage.md`](docs/simulation-coverage.md).
+[`docs/simulation-coverage.md`](docs/simulation-coverage.md); for on-hardware
+wiring see [`docs/hardware-boards.md`](docs/hardware-boards.md).
 
 > Board `mr_canhubk3/s32k344` (Cortex-M7) · Zephyr **v4.2.0** · SDK **0.17.x** ·
 > Renode **1.16.x** · Renode platform: upstream S32K388.
@@ -32,7 +33,23 @@ if you use another.
 | **Renode 1.16.x** | renode.io | the simulator |
 | **git** | git-scm.com | `git config --global core.longpaths true` |
 
-Python packages for the ML pipeline (into the venv): `pandas scikit-learn torch`.
+Python packages for the ML pipeline (into the venv):
+`pandas scikit-learn torch` (add `librosa soundfile` for the acoustic/MIMII path).
+
+**Real-silicon path (optional).** The simulation needs *no* board. To also run on
+hardware (2× S32K344 — FRDM-A-S32K344 edge + T-box/FRDM-A center), add:
+
+| Tool / part | Notes |
+|---|---|
+| **S32 Design Studio (S32DS)** | ships `arm-none-eabi-gdb` + the P&E `pegdbserver_console.exe` used by `run_silicon.ps1` |
+| **P&E / USB Multilink** | one probe per board (`USBMULTILINK`); each board on its own GDB-server port |
+| **PuTTY** | serial consoles (115200 8N1), one per board |
+| **2× S32K344 board** | FRDM-A-S32K344 (16 MHz) and/or T-box EVB (40 MHz) |
+| **CAN wiring + 120 Ω** | CANH/CANL/GND between nodes, **~60 Ω** across the pair (both terminators), 12 V supply; a multimeter for bring-up |
+
+See [`docs/hardware-boards.md`](docs/hardware-boards.md) for the safe wiring /
+pin / transceiver rules and [`boards/nxp/s32k344mini/README.md`](boards/nxp/s32k344mini/README.md)
+for the out-of-tree board.
 
 ---
 
@@ -81,9 +98,45 @@ For headless, multi-seed/rate dataset generation (no GUI) use
 Zephyr shell (`uart:~$`). The `Unhandled write to ...` warnings are expected
 (the S32K388 model omits some clock/flash peripherals).
 
+### Real-silicon path (optional — 2× S32K344)
+
+Runs the *same* fault→telemetry→detect→predict loop on real boards. One board is
+the **edge** (sender, `ROLE_EDGE=1`), one the **center** (receiver, `ROLE_EDGE=0`);
+they talk over classic CAN @ 125 kbit/s. One firmware (`firmware/k3_silicon`),
+selected at build time by `-DNODE={frdma|tbox}` and `-DROLE_EDGE={0|1}`.
+
+```cmd
+:: build both ELFs (2x FRDM-A, 16 MHz): build\frdma_edge + build\frdma_center
+powershell -ExecutionPolicy Bypass -File scripts\s32k344-2xfrdm-a.ps1
+
+:: flash both, stream telemetry, inject a fault, run the ML pipeline on silicon logs
+powershell -ExecutionPolicy Bypass -File scripts\run_silicon.ps1
+```
+
+`run_silicon.ps1` flashes each board headless via `pegdbserver_console.exe`
+(`load → monitor reset → detach`, which resumes the core), opens a PuTTY console
+per board with logging to `evidence\silicon\`, captures ~30 s of clean baseline,
+then arms the fault with `scripts\silicon\inject_leak.gdb` (memory leak) or
+`inject_busy.gdb` (deadline-miss). Both use `tbreak main → continue` so the fault
+vars are written **after** Zephyr zeroes BSS (writing at the reset vector gets
+wiped). It then labels the edge log into `datasets\silicon\` and runs the same
+`run_campaign.py → dataset.py → baseline.py → predictor.py` pipeline.
+
+For the T-box (40 MHz crystal) use `scripts\s32k344-tbox_os.ps1` (patches the HAL
+clock 16→40 MHz for the build, then restores it); for a single FRDM-A use
+`scripts\s32k344-mini_build_os.ps1`; for the S32K144 EVB use
+`scripts\s32k144-q100_build_os.ps1`.
+
+> Set `$ComEdge` / `$ComCenter` in `run_silicon.ps1` to your actual ports —
+> confirm which board is which from its `2BOARD,boot,role=edge|center` line.
+> `firmware\board_check` is a console-only heartbeat (no CAN/heap/float) to prove
+> a fresh board port before loading the real firmware.
+
 ---
 
 ## Repository map
+
+**Renode simulation (no board)**
 
 | File / dir | Purpose |
 |---|---|
@@ -116,8 +169,40 @@ Zephyr shell (`uart:~$`). The `Unhandled write to ...` warnings are expected
 | `scripts/renode_open.py` | Launches the Renode GUI (Windows) |
 | `tests/renode/*.robot` | Renode Robot-Framework tests (see `tests/renode/README`) |
 | `datasets/sim/*.csv` | Generated labelled telemetry datasets |
+
+**Real silicon (2× S32K344 — added for on-hardware runs)**
+
+| File / dir | Purpose |
+|---|---|
+| `firmware/k3_silicon/src/main.c` | One firmware, two roles: edge sends `TELEM,` over CAN + arms `sdv_fault_ctl`; center receives via msgq. Async TX (`K_NO_WAIT`), 64 KB leak heap |
+| `firmware/k3_silicon/CMakeLists.txt` | `-DNODE={frdma\|tbox}` + `-DROLE_EDGE={0\|1}` selector |
+| `firmware/k3_silicon/{frdma,tbox}.{overlay,conf}` | Per-board DT overlay + Kconfig (flexcan0/PTC21 vs flexcan3/PTB11, UART vs semihost console) |
+| `firmware/board_check/` | Console-only heartbeat sanity app — isolates a board port from firmware |
+| `boards/nxp/s32k344mini/` | Out-of-tree board: S32K344MINI-EVB / FRDM-A-S32K344 (DTS, pinctrl, defconfig, README) |
+| `boards/nxp/s32k144evb/` | Out-of-tree board: S32K144EVB-Q100 |
+| `scripts/run_silicon.ps1` | Flash both boards → stream telemetry → inject → ML (silicon equivalent of `run_all.ps1`) |
+| `scripts/s32k344-2xfrdm-a.ps1` | Builds the edge + center ELFs (2× FRDM-A, 16 MHz) |
+| `scripts/s32k344-tbox_os.ps1` | Builds the T-box ELF (patches HAL clock 16→40 MHz, then restores) |
+| `scripts/s32k344-mini_build_os.ps1` | Builds a single FRDM-A ELF |
+| `scripts/s32k144-q100_build_os.ps1` | Builds the S32K144 EVB ELF |
+| `scripts/silicon/inject_{leak,busy}.gdb` | GDB fault injectors — `tbreak main` then set `sdv_fault_ctl` (leak / busy-spin) |
+| `datasets/silicon/*.csv` | Labelled telemetry captured on real silicon |
+| `docs/hardware-boards.md` | Board / transceiver / pin + safe-wiring reference |
+| `Memory_Regions.md` | SRAM / flash memory-map notes |
+
+**Acoustic (MIMII) fault class**
+
+| File / dir | Purpose |
+|---|---|
+| `ml/feature_mimii.py` | MIMII valve audio → feature CSVs (`datasets/sim/acoustic_valve_*`) |
+| `ml/artifacts_acoustic/` | Acoustic AE outputs (separate from the heap/timing AE) |
+
+**Project-wide**
+
+| File / dir | Purpose |
+|---|---|
 | `documents/` | Thesis scope (thematic plan, chapter structure) + roadmaps |
-| `docs/` | Architecture overview, simulation coverage, code style |
+| `docs/` | Architecture overview, simulation coverage, code style, hardware boards |
 | `evidence/` | Captured plots (heap drain per leak rate) |
 | `.github/workflows/` | CI (build + Renode robot), dataset generation, PR-title gate |
 | `west.yml` | west manifest — Zephyr v4.2.0 + NXP HAL (allowlisted modules) |
