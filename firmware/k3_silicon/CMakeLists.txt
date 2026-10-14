@@ -13,6 +13,6 @@ endif()
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(k3_silicon)
 
-target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE src/main.c ${CMAKE_CURRENT_SOURCE_DIR}/../common/sdv_detect.c)
 target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 target_compile_definitions(app PRIVATE ROLE_EDGE=${ROLE_EDGE})

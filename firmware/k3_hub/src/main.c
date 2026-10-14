@@ -1,8 +1,8 @@
 /*****************************************************************************
 * File:        main.c
-* Description: K3 zonal hub -- gathers edge telemetry, runs the on-vehicle
-*              anomaly detector (float autoencoder, L2), and prints the score.
-* Layer:       firmware/k3_hub  (on-vehicle loop host: gather -> detect)
+* Description: K3 zonal hub -- gathers edge telemetry and runs the shared
+*              on-vehicle detector + supervisor (sdv_detect.c).
+* Layer:       firmware/k3_hub
 * Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing
 * Copyright (c) 2026 Maior Cristian-Alexandru
 *****************************************************************************/
@@ -13,162 +13,36 @@
 #include <zephyr/drivers/uart.h>
 #include <stdlib.h>
 #include "telemetry.h"
-#include "ae_model.h"
 #include "actions.h"
+#include "sdv_detect.h"
 
 static const struct device *can_dev;
 static const struct device *link_uart;
 
 CAN_MSGQ_DEFINE(rx_msgq, 16);
 static const struct can_filter telem_filter = {
-    .id    = SDV_CAN_BASE_ID,   /* 0x100 */
+    .id    = SDV_CAN_BASE_ID,
     .mask  = 0x7F0,
     .flags = 0,
 };
 
-#define AE_WIN          10          /* dataset.py rolling window */
-#define AE_DT_S         0.1f        /* 100 ms tick */
-#define AE_W1           (AE_WIN + 1)
-#define TTF_GUARD_S    3.0f
-
-static float    hf_hist[AE_W1], ll_hist[AE_W1];
-static uint32_t det_tick;
 static uint32_t latched_hf;
 static bool     have_hf;
-static uint32_t guard_blocks;
-static bool     acting;
 
-static int action_allowed(int action)
+void sdv_send_cmd(int node, int action)
 {
-    return action == SDV_RESTART || action == SDV_DEGRADED_MODE || action == SDV_LOAD_SHED;
-}
-
-static void send_cmd_to_k1(int node, int action)
-{
-    /* TBD: let it be here for now */
-    char *buff = (char*) malloc(24);
-    int n = snprintk(buff, 24, "C,%d,%d\n", node, action);
-    for (int i = 0; i < n; i++) {
-        uart_poll_out(link_uart, buff[i]);
-    }
+    char buf[24];
+    int n = snprintk(buf, sizeof(buf), "C,%d,%d\n", node, action);
+    for (int i = 0; i < n; i++) uart_poll_out(link_uart, buf[i]);
     printk("K3,tx,cmd,node=%d,action=%d\n", node, action);
 }
 
-/* returns approved action, or SDV_NONE if blocked/none */
-static int supervisor_step(int src, int alarm, float ttf, int proposed)
-{
-    /**************************************************
-        1. no alarm so SDV_NONE
-        2. the guard blocks non-whitelist so SDV_NONE
-        3. too early so ttf higher then TTF_GUARD_S 
-        4. already healing bool is true
-    ***************************************************/
-    if (!alarm) return SDV_NONE;
-
-    if (!action_allowed(proposed)) {
-        guard_blocks++;
-        printk("K3,supervisor,block,src=%d,action=%d,reason=whitelist\n", src, proposed);
-        printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
-        return SDV_NONE;
-    }
-    if (proposed == SDV_RESTART && ttf > TTF_GUARD_S) {
-        guard_blocks++;
-        printk("K3,supervisor,block,src=%d,action=RESTART,reason=ttf%.1f\n", src, (double)ttf);
-        printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
-        return SDV_NONE;
-    }
-    if (acting) return SDV_NONE;
-    acting = true;
-    printk("K3,supervisor,approve,src=%d,action=%d,ttf=%.1f\n", src, proposed, (double)ttf);
-    return proposed;
-}
-
-static void dense(const float *w, const float *b, const float *in, float *out,
-                  int no, int ni, int relu)
-/*  step1  z = (x − ae_mu)/ae_sd            = [−136,   −1360,   −0.488,  −0.095]
-    step2  h1 = ReLU(W0·z + b0)   (8) = [0, 0, 335.48, 0, 74.84, 0, 180.37, 325.82]
-        h2 = ReLU(W1·h1 + b1)  (3) = [385.55, 180.34, 156.00]      ← bottleneck
-        h3 = ReLU(W2·h2 + b2)  (8) = [0, 449.84, 0, 0, 233.54, 245.08, 0, 0]
-        o  =      W3·h3 + b3   (4) = [−6.51, −10.13, 209.57, 22.28] ← rebuild
-    step3  score = mean((o − z)²)          = 470883.74 */
-{
-    for (int o = 0; o < no; o++) {
-        float acc = b[o];
-        for (int i = 0; i < ni; i++) {
-            acc += w[o * ni + i] * in[i];
-        }
-        out[o] = (relu && acc < 0.f) ? 0.f : acc;
-    }
-}
-
-static float ae_score(const float x[AE_D0])
-{
-    float z[AE_D0], h1[AE_D1], h2[AE_D2], h3[AE_D3], o[AE_D4];
-    for (int i = 0; i < AE_D0; i++) {
-        z[i] = (x[i] - ae_mu[i]) / ae_sd[i];         /* identical scaling to training */
-    }
-    dense((const float *)ae_w0, ae_b0, z,  h1, AE_D1, AE_D0, 1);
-    dense((const float *)ae_w1, ae_b1, h1, h2, AE_D2, AE_D1, 1);
-    dense((const float *)ae_w2, ae_b2, h2, h3, AE_D3, AE_D2, 1);
-    dense((const float *)ae_w3, ae_b3, h3, o,  AE_D4, AE_D3, 0);
-    float mse = 0.f;
-    for (int i = 0; i < AE_D4; i++) {
-        float d = o[i] - z[i];
-        mse += d * d;
-    }
-    return mse / AE_D4;                              /* reconstruction error */
-}
-
-static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latency)
-{
-    float hf = (float)heap_free, ll = (float)loop_latency;
-    hf_hist[det_tick % AE_W1] = hf;
-    ll_hist[det_tick % AE_W1] = ll;
-
-    uint32_t n   = det_tick < AE_WIN ? det_tick : AE_WIN;
-    uint32_t old = (det_tick - n) % AE_W1;
-    /* heap_free_slope    = (7976 − 9336) / (10 × 0.1) = −1360      (full leak rate)
-       loop_latency_slope = (0 − 0)       / (10 × 0.1) = 0 */
-    float hf_slope = n ? (hf - hf_hist[old]) / (n * AE_DT_S) : 0.f;
-    float ll_slope = n ? (ll - ll_hist[old]) / (n * AE_DT_S) : 0.f;
-    det_tick++;
-
-    float x[AE_D0] = { hf, hf_slope, ll, ll_slope };  /* FEATURES order */
-    float s = ae_score(x);
-    int alarm = s > AE_THRESHOLD;
-    int whole = (int)s;
-    int milli = (int)((s - (float)whole) * 1000.f);
-    printk("K3,score,seq=%u,score=%d.%03d,alarm=%d\n", seq, whole, milli, alarm);
-
-    /* TBD : We will use this logic but not here*/
-    // if (alarm) {
-    //     printk("K3,observer,notify,src=%u,action=%u\n",
-    //            SDV_NODE_POWERTRAIN, SDV_RESTART);
-    // }
-    if (alarm) {
-        float drain = -hf_slope;
-        if (drain < 1e-6f) drain = 1e-6f;
-        float ttf = heap_free / drain;
-        int act = supervisor_step(SDV_NODE_POWERTRAIN, alarm, ttf, SDV_RESTART);
-        if (act != SDV_NONE) {
-            send_cmd_to_k1(SDV_NODE_POWERTRAIN, act);   /* C,1,<action> over lpuart1 */
-        }
-    } else { /* incident cleared */
-            acting = false;
-            printk("K3,supervisor,rearm\n");
-    }
-}
-
-/* Parse one telemetry line from the link UART: "L,node,signal,seq,value".
- * Latch heap_free on sig 1; run the detector when loop_latency (sig 5) closes
- * the tick -- one (heap_free, loop_latency) sample per tick. */
 static void handle_link_line(const char *line)
 {
     if (line[0] != 'L' || line[1] != ',') {
         return;
     }
     char *p = (char *)line + 2;
-    /* Convert a string to an unsigned long integer. */
     unsigned long node = strtoul(p, &p, 10); if (*p++ != ',') return;
     unsigned long sig  = strtoul(p, &p, 10); if (*p++ != ',') return;
     unsigned long sq   = strtoul(p, &p, 10); if (*p++ != ',') return;
@@ -176,7 +50,7 @@ static void handle_link_line(const char *line)
 
     printk("K3,rx,node=%lu,sig=%lu,seq=%lu,val=%lu\n", node, sig, sq, val);
 
-    if (node != SDV_NODE_POWERTRAIN) {               /* model trained on K1 powertrain */
+    if (node != SDV_NODE_POWERTRAIN) {
         return;
     }
     if (sig == SIG_HEAP_FREE) {
@@ -211,7 +85,6 @@ int main(void)
     }
 
     if (can_ok) {
-        /* Silicon path: block on CAN RX. */
         while (1) {
             struct can_frame frame;
             if (k_msgq_get(&rx_msgq, &frame, K_FOREVER) == 0) {
@@ -221,7 +94,6 @@ int main(void)
             }
         }
     } else if (link_ok) {
-        /* Sim path: poll the link UART for telemetry lines (ADR-017). */
         printk("K3,link,ok\n");
         char line[64];
         int idx = 0;

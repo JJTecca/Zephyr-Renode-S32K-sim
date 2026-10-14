@@ -1,21 +1,20 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+/*****************************************************************************
+* File:        config.h
+* Description: Cross-platform tuning shared by k3_hub (Renode) and k3_silicon.
+* Layer:       firmware/common
+* Project:     Zephyr-Renode-S32K-sim -- SDV Fault-Prediction & Self-Healing
+* Copyright (c) 2026 Maior Cristian-Alexandru
+*****************************************************************************/
 
-#define TICK_MS        100
-#define LEAK_HEAP_SZ   65536
-#define BUSY_CAP_US    500000u
-#define SDV_CAN_CMD_ID 0x200          /* center -> edge command frames */
+#ifndef SDV_CONFIG_H
+#define SDV_CONFIG_H
 
-#if ROLE_EDGE
-static const char *st(enum can_state s);
-static void send_telem(uint8_t sig, uint32_t val);
-static void apply_cmd(int action);
-#else
-static void send_cmd(int node, int action);
-static int supervisor_step(int src, int alarm, float ttf, int proposed);
-static void dense(const float *w, const float *b, const float *in, float *out, int no, int ni, int relu);
-static float ae_score(const float x[]);
-static void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latency);
-#endif
+/***************************************************
+* MACRO DEFINITIONS
+***************************************************/
+#define AE_WIN      10
+#define AE_DT_S     0.1f
+#define AE_W1       (AE_WIN + 1)
+#define TTF_GUARD_S 3.0f
 
-#endif
+#endif /* SDV_CONFIG_H */
