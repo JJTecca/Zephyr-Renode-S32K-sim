@@ -6,6 +6,11 @@ twister-out*/
 *renode-logs
 *mimii
 *vault
+datasets/silicon/*.csv
+ml/artifacts/*.pt
+ml/artifacts/*.npz
+ml/artifacts/*.npy
+ml/artifacts/*.json
 
 # Python
 __pycache__/

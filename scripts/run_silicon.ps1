@@ -47,7 +47,7 @@ Start-Sleep 3
 Stop-Process $srvE -ErrorAction SilentlyContinue
 
 # 1. open both PuTTY consoles WITH logging (you watch them live + they capture)
-$pE = Start-Process $Putty "-serial $ComEdge   -sercfg 115200,8,n,1,N -sessionlog evidence\silicon\${stem}_edge.log"   -PassThru
+$pE = Start-Process "C:\Program Files\PuTTY\putty.exe" -ArgumentList "-serial $ComEdge -sercfg 115200,8,n,1,N -sessionlog evidence\silicon\${stem}_edge.log" -PassThru
 $pC = Start-Process $Putty "-serial $ComCenter -sercfg 115200,8,n,1,N -sessionlog evidence\silicon\${stem}_center.log" -PassThru
 
 # 2. 30s of clean baseline telemetry
