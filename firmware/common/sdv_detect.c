@@ -14,9 +14,9 @@
 #include "config.h"
 #include "sdv_detect.h"
 
-static float    hf_hist[AE_W1], ll_hist[AE_W1];
-static uint32_t det_tick, guard_blocks;
-static bool     acting;
+static float    hf_hist[SDV_MAX_NODES][AE_W1], ll_hist[SDV_MAX_NODES][AE_W1];
+static uint32_t det_tick[SDV_MAX_NODES], guard_blocks;
+static bool     acting[SDV_MAX_NODES];
 
 static int action_allowed(int a)
 {
@@ -48,34 +48,36 @@ float ae_score(const float *x)
 int supervisor_step(int src, int alarm, float ttf, int proposed)
 {
 	if (!alarm) return SDV_NONE;
-	if (!action_allowed(proposed)) {
-		guard_blocks++;
-		printk("K3,supervisor,block,src=%d,action=%d,reason=whitelist\n", src, proposed);
-		printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
+	if (src < 0 || src >= SDV_MAX_NODES) return SDV_NONE;
+	if (!action_allowed(proposed)) { 
+		guard_blocks++; 
+		printk("K3,supervisor,block,src=%d,action=%d,reason=whitelist\n", src, proposed); printk("K3,supervisor,guard_blocks=%u\n", guard_blocks); 
+		return SDV_NONE; 
+	}
+	if (proposed == SDV_RESTART && ttf > TTF_GUARD_S) { 
+		guard_blocks++; 
+		printk("K3,supervisor,block,src=%d,action=RESTART,reason=ttf%.1f\n", src, (double)ttf); printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
+		return SDV_NONE; }
+	if (acting[src]) {
 		return SDV_NONE;
 	}
-	if (proposed == SDV_RESTART && ttf > TTF_GUARD_S) {
-		guard_blocks++;
-		printk("K3,supervisor,block,src=%d,action=RESTART,reason=ttf%.1f\n", src, (double)ttf);
-		printk("K3,supervisor,guard_blocks=%u\n", guard_blocks);
-		return SDV_NONE;
-	}
-	if (acting) return SDV_NONE;
-	acting = true;
+	acting[src] = true;
 	printk("K3,supervisor,approve,src=%d,action=%d,ttf=%.1f\n", src, proposed, (double)ttf);
 	return proposed;
 }
 
-void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latency)
+void detector_step(uint8_t node, uint16_t seq, uint32_t heap_free, uint32_t loop_latency)
 {
+	if (node >= SDV_MAX_NODES) return;
 	float hf = (float)heap_free, ll = (float)loop_latency;
-	hf_hist[det_tick % AE_W1] = hf;
-	ll_hist[det_tick % AE_W1] = ll;
-	uint32_t n   = det_tick < AE_WIN ? det_tick : AE_WIN;
-	uint32_t old = (det_tick - n) % AE_W1;
-	float hf_slope = n ? (hf - hf_hist[old]) / (n * AE_DT_S) : 0.f;
-	float ll_slope = n ? (ll - ll_hist[old]) / (n * AE_DT_S) : 0.f;
-	det_tick++;
+	uint32_t t = det_tick[node];
+	hf_hist[node][t % AE_W1] = hf;
+	ll_hist[node][t % AE_W1] = ll;
+	uint32_t n   = t < AE_WIN ? t : AE_WIN;
+	uint32_t old = (t - n) % AE_W1;
+	float hf_slope = n ? (hf - hf_hist[node][old]) / (n * AE_DT_S) : 0.f;
+	float ll_slope = n ? (ll - ll_hist[node][old]) / (n * AE_DT_S) : 0.f;
+	det_tick[node]++;
 
 	float x[AE_D0] = { hf, hf_slope, ll, ll_slope };
 	uint32_t c0 = k_cycle_get_32();
@@ -84,15 +86,15 @@ void detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latency)
 
 	int alarm = s > AE_THRESHOLD;
 	int whole = (int)s, milli = (int)((s - (float)whole) * 1000.f);
-	printk("K3,score,seq=%u,score=%d.%03d,alarm=%d,infer_ns=%u\n", seq, whole, milli, alarm, infer_ns);
+	printk("K3,score,node=%u,seq=%u,score=%d.%03d,alarm=%d,infer_ns=%u\n", node, seq, whole, milli, alarm, infer_ns);
 
 	if (alarm) {
 		float drain = -hf_slope; if (drain < 1e-6f) drain = 1e-6f;
 		float ttf = heap_free / drain;
-		int act = supervisor_step(SDV_NODE_POWERTRAIN, alarm, ttf, SDV_RESTART);
-		if (act != SDV_NONE) sdv_send_cmd(SDV_NODE_POWERTRAIN, act);
-	} else if (acting) {
-		acting = false;
-		printk("K3,supervisor,rearm\n");
+		int act = supervisor_step(node, alarm, ttf, SDV_RESTART);
+		if (act != SDV_NONE) sdv_send_cmd(node, act);
+	} else if (acting[node]) {
+		acting[node] = false;
+		printk("K3,supervisor,node=%u,rearm\n", node);
 	}
 }

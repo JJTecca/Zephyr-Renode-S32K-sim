@@ -53,12 +53,13 @@ static void handle_link_line(const char *line)
     if (node != SDV_NODE_POWERTRAIN) {
         return;
     }
+    if (node >= SDV_MAX_NODES) return;
     if (sig == SIG_HEAP_FREE) {
-        latched_hf = (uint32_t)val;
-        have_hf = true;
-    } else if (sig == SIG_LOOP_LATENCY && have_hf) {
-        detector_step((uint16_t)sq, latched_hf, (uint32_t)val);
-        have_hf = false;
+        latched_hf[node] = (uint32_t)val;
+        have_hf[node] = true;
+    } else if (sig == SIG_LOOP_LATENCY && have_hf[node]) {
+        detector_step((uint8_t)node, (uint16_t)sq, latched_hf[node], (uint32_t)val);
+        have_hf[node] = false;
     }
 }
 

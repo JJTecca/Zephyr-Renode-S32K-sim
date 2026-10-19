@@ -100,8 +100,8 @@ static void apply_cmd(int action)
 #if !ROLE_EDGE
 CAN_MSGQ_DEFINE(rxq, 16);
 static const struct can_filter flt = { .id = SDV_CAN_BASE_ID, .mask = 0x7F0, .flags = 0 };
-static uint32_t latched_hf;
-static bool     have_hf;
+static uint32_t latched_hf[SDV_MAX_NODES];
+static bool     have_hf[SDV_MAX_NODES];
 #endif
 
 int main(void)

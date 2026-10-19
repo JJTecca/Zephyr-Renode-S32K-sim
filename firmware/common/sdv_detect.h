@@ -16,11 +16,16 @@
 #include <stdint.h>
 
 /***************************************************
+* MACRO DEFINITIONS
+***************************************************/
+#define SDV_MAX_NODES 5
+
+/***************************************************
 * FUNCTION PROTOTYPES
 ***************************************************/
 extern float ae_score(const float *x);
 extern int   supervisor_step(int src, int alarm, float ttf, int proposed);
-extern void  detector_step(uint16_t seq, uint32_t heap_free, uint32_t loop_latency);
+extern void  detector_step(uint8_t node, uint16_t seq, uint32_t heap_free, uint32_t loop_latency);
 extern void  sdv_send_cmd(int node, int action);
 
 #endif /* SDV_DETECT_H */
