@@ -15,19 +15,19 @@
   "scaler_mu": [
     65536.0,
     0.0,
-    3.8541666666666665,
-    0.10145916005291004
+    3.8548387096774195,
+    0.14893753200204812
   ],
   "scaler_sd": [
     1.0,
     1.0,
-    0.8098246552323671,
-    0.7360625937630753
+    0.8265768415947186,
+    0.7290951806854912
   ],
-  "threshold": 6.813680648803711,
+  "threshold": 6.12085485458374,
   "threshold_policy": "max(train-normal score) * 1.1",
   "fp_per_hour_at_threshold": 0.0,
-  "train_normal_rows": 192,
-  "test_faulty_rows": 0,
+  "train_normal_rows": 186,
+  "test_faulty_rows": 20,
   "calib_rows": 256
 }
