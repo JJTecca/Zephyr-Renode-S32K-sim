@@ -23,10 +23,6 @@
 #define SDV_NODE SDV_NODE_POWERTRAIN
 #endif
 
-#ifndef SILICON_AUTO_ARM
-#define SILICON_AUTO_ARM 300
-#endif
-
 #define TICK_MS        100
 #define LEAK_HEAP_SZ   65536
 #define BUSY_CAP_US    500000u
@@ -118,10 +114,6 @@ int main(void)
 	k_heap_init(&leak_heap, leak_buf, LEAK_HEAP_SZ);
 	uint32_t tick = 0;
 	while (1) {
-		if (tick == SILICON_AUTO_ARM && sdv_fault_ctl.magic != SDV_FAULT_MAGIC) {
-			sdv_fault_ctl.leak_bytes_per_tick = 256;
-			sdv_fault_ctl.magic = SDV_FAULT_MAGIC;
-		}
 		struct can_frame cf;
 		if (k_msgq_get(&cmdq, &cf, K_NO_WAIT) == 0) {
 			struct sdv_cmd_frame *c = (struct sdv_cmd_frame *)cf.data;
@@ -160,11 +152,11 @@ int main(void)
 		if (k_msgq_get(&rxq, &fr, K_MSEC(1000)) == 0) {
 			struct sdv_telem_frame *tf = (struct sdv_telem_frame *)fr.data;
 			printk("TELEM,%lld,%u,%u,%u,%u\n", k_uptime_get(), tf->node, tf->signal, tf->seq, tf->value);
-			if (tf->node == SDV_NODE_POWERTRAIN) {
-				if (tf->signal == SIG_HEAP_FREE) { latched_hf = (uint32_t)tf->value; have_hf = true; }
-				else if (tf->signal == SIG_LOOP_LATENCY && have_hf) {
-					detector_step(tf->seq, latched_hf, (uint32_t)tf->value);
-					have_hf = false;
+			if (tf->node < SDV_MAX_NODES) {
+				if (tf->signal == SIG_HEAP_FREE) { latched_hf[tf->node] = (uint32_t)tf->value; have_hf[tf->node] = true; }
+				else if (tf->signal == SIG_LOOP_LATENCY && have_hf[tf->node]) {
+					detector_step(tf->node, tf->seq, latched_hf[tf->node], (uint32_t)tf->value);
+					have_hf[tf->node] = false;
 				}
 			}
 		} else {

@@ -20,7 +20,7 @@ $Edge1Elf   = "build\frdma1\zephyr\zephyr.elf"
 $Edge2Elf   = "build\frdma2\zephyr\zephyr.elf"
 $CenterElf  = "build\tbox\zephyr\zephyr.elf"
 $ComEdge1   = "COM4"
-$ComEdge2   = "COM5"
+$ComEdge2   = "COM7"
 $stem       = "$($Fault)_256"
 New-Item -ItemType Directory -Force -Path evidence\silicon | Out-Null
 

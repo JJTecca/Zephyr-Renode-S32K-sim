@@ -1,6 +1,7 @@
 {
   "glob": "datasets/silicon/memory_leak_*.csv",
   "files": [
+    "datasets/silicon\\memory_leak_256_seed1.csv",
     "datasets/silicon\\memory_leak_256_seed42.csv"
   ],
   "seed": 42,
@@ -15,19 +16,19 @@
   "scaler_mu": [
     65536.0,
     0.0,
-    3.8548387096774195,
-    0.14893753200204812
+    4.054347826086956,
+    -0.10791925465838509
   ],
   "scaler_sd": [
     1.0,
     1.0,
-    0.8265768415947186,
-    0.7290951806854912
+    0.8926005572446226,
+    0.7599816133816029
   ],
-  "threshold": 6.12085485458374,
+  "threshold": 5.842358112335205,
   "threshold_policy": "max(train-normal score) * 1.1",
-  "fp_per_hour_at_threshold": 0.0,
-  "train_normal_rows": 186,
+  "fp_per_hour_at_threshold": 115.7556270096463,
+  "train_normal_rows": 644,
   "test_faulty_rows": 20,
   "calib_rows": 256
 }
